@@ -71,9 +71,15 @@ export function useChat(sessionId) {
 
             if (dados.tipo === 'texto') {
               textoAcumulado += dados.conteudo
-              // Atualiza a mensagem do Fin em tempo real
+              // Remove blocos estruturais durante o streaming para não mostrar pro usuário
+              const textoVisivel = textoAcumulado
+                .replace(/
+DADOS_REGISTRO:[\s\S]*$/, '')
+                .replace(/
+GERAR_PDF:[\s\S]*$/, '')
+                .trim()
               setMensagens(prev => prev.map(m =>
-                m.id === idFin ? { ...m, content: textoAcumulado } : m
+                m.id === idFin ? { ...m, content: textoVisivel } : m
               ))
             }
 
