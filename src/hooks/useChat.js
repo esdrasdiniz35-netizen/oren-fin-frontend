@@ -26,18 +26,15 @@ export function useChat(sessionId) {
   const enviarMensagem = useCallback(async (texto) => {
     if (!texto.trim() || carregando) return
 
-    // Adiciona mensagem do usuário
     const novaMensagemUsuario = { role: 'user', content: texto, id: Date.now() }
     setMensagens(prev => [...prev, novaMensagemUsuario])
     setCarregando(true)
     setPdfUrl(null)
 
-    // Adiciona mensagem do Fin vazia (vai sendo preenchida pelo streaming)
     const idFin = Date.now() + 1
     setMensagens(prev => [...prev, { role: 'assistant', content: '', id: idFin, streaming: true }])
 
     try {
-      // Busca contexto atualizado antes de cada mensagem
       const ctx = await buscarContexto()
 
       const res = await fetch(`${BACKEND_URL}/chat`, {
@@ -71,13 +68,9 @@ export function useChat(sessionId) {
 
             if (dados.tipo === 'texto') {
               textoAcumulado += dados.conteudo
-              // Remove blocos estruturais durante o streaming para não mostrar pro usuário
-              const textoVisivel = textoAcumulado
-                .replace(/
-DADOS_REGISTRO:[\s\S]*$/, '')
-                .replace(/
-GERAR_PDF:[\s\S]*$/, '')
-                .trim()
+              // Remove blocos estruturais durante streaming
+              const semRegistro = textoAcumulado.split('\nDADOS_REGISTRO:')[0]
+              const textoVisivel = semRegistro.split('\nGERAR_PDF:')[0].trim()
               setMensagens(prev => prev.map(m =>
                 m.id === idFin ? { ...m, content: textoVisivel } : m
               ))
@@ -87,19 +80,16 @@ GERAR_PDF:[\s\S]*$/, '')
               textoFinal = dados.texto_completo
               dadosPdf = dados.dados_pdf
 
-              // Finaliza a mensagem do Fin
               setMensagens(prev => prev.map(m =>
                 m.id === idFin ? { ...m, content: textoFinal, streaming: false } : m
               ))
 
-              // Atualiza histórico
               historicoRef.current = [
                 ...historicoRef.current,
                 { role: 'user', content: texto },
                 { role: 'assistant', content: textoFinal }
-              ].slice(-20) // mantém últimas 20 mensagens
+              ].slice(-20)
 
-              // Gera PDF se necessário
               if (dadosPdf) {
                 await gerarPdf(dadosPdf)
               }
