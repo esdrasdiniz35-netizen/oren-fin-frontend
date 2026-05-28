@@ -3,8 +3,8 @@ import { useState, useCallback, useRef } from 'react'
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001'
 
 function limparTexto(texto) {
-  // Remove DADOS_REGISTRO e GERAR_PDF — com ou sem \n antes
   let t = texto
+  // Remove tudo a partir de DADOS_REGISTRO ou GERAR_PDF
   const idxRegistro = t.indexOf('DADOS_REGISTRO:')
   if (idxRegistro !== -1) t = t.slice(0, idxRegistro)
   const idxPdf = t.indexOf('GERAR_PDF:')
@@ -61,7 +61,6 @@ export function useChat(sessionId) {
       const reader = res.body.getReader()
       const decoder = new TextDecoder()
       let textoAcumulado = ''
-      let textoFinal = ''
       let dadosPdf = null
 
       while (true) {
@@ -78,19 +77,35 @@ export function useChat(sessionId) {
 
             if (dados.tipo === 'texto') {
               textoAcumulado += dados.conteudo
-              const textoVisivel = limparTexto(textoAcumulado)
-              setMensagens(prev => prev.map(m =>
-                m.id === idFin ? { ...m, content: textoVisivel } : m
-              ))
+
+              // Se detectar GERAR_PDF durante streaming, mostra só "Gerando..."
+              if (textoAcumulado.includes('GERAR_PDF:')) {
+                setMensagens(prev => prev.map(m =>
+                  m.id === idFin ? { ...m, content: '📊 Gerando seu PDF, um momento...' } : m
+                ))
+              } else {
+                const textoVisivel = limparTexto(textoAcumulado)
+                setMensagens(prev => prev.map(m =>
+                  m.id === idFin ? { ...m, content: textoVisivel } : m
+                ))
+              }
             }
 
             if (dados.tipo === 'fim') {
-              textoFinal = dados.texto_completo
+              const textoFinal = dados.texto_completo
               dadosPdf = dados.dados_pdf
 
-              setMensagens(prev => prev.map(m =>
-                m.id === idFin ? { ...m, content: textoFinal, streaming: false } : m
-              ))
+              // Se tem PDF, mantém a mensagem de "gerando"
+              // Se não tem PDF, mostra o texto final
+              if (!dadosPdf) {
+                setMensagens(prev => prev.map(m =>
+                  m.id === idFin ? { ...m, content: textoFinal, streaming: false } : m
+                ))
+              } else {
+                setMensagens(prev => prev.map(m =>
+                  m.id === idFin ? { ...m, content: '📊 Gerando seu PDF, um momento...', streaming: false } : m
+                ))
+              }
 
               historicoRef.current = [
                 ...historicoRef.current,
