@@ -2,6 +2,16 @@ import { useState, useCallback, useRef } from 'react'
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001'
 
+function limparTexto(texto) {
+  // Remove DADOS_REGISTRO e GERAR_PDF — com ou sem \n antes
+  let t = texto
+  const idxRegistro = t.indexOf('DADOS_REGISTRO:')
+  if (idxRegistro !== -1) t = t.slice(0, idxRegistro)
+  const idxPdf = t.indexOf('GERAR_PDF:')
+  if (idxPdf !== -1) t = t.slice(0, idxPdf)
+  return t.trim()
+}
+
 export function useChat(sessionId) {
   const [mensagens, setMensagens] = useState([])
   const [carregando, setCarregando] = useState(false)
@@ -68,9 +78,7 @@ export function useChat(sessionId) {
 
             if (dados.tipo === 'texto') {
               textoAcumulado += dados.conteudo
-              // Remove blocos estruturais durante streaming
-              const semRegistro = textoAcumulado.split('\nDADOS_REGISTRO:')[0]
-              const textoVisivel = semRegistro.split('\nGERAR_PDF:')[0].trim()
+              const textoVisivel = limparTexto(textoAcumulado)
               setMensagens(prev => prev.map(m =>
                 m.id === idFin ? { ...m, content: textoVisivel } : m
               ))
