@@ -225,12 +225,7 @@ export default function App() {
           </div>
         )}
 
-        {!iniciado && resumoDia && (
-          <div className="message fin">
-            <Avatar />
-            <CardResumoDia resumo={resumoDia} estabelecimento={estabelecimento} data={hoje} />
-          </div>
-        )}
+
 
         {todasMensagens.map(item => {
           if (item.ehCard && item.tipo === 'resumo_dia' && (item.resumo || resumoDia)) {
