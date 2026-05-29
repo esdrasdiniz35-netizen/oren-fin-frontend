@@ -273,7 +273,27 @@ html, body {
   align-items: center;
 }
 
-.bubble.typing span {
+.bubble.typing-dots {
+  display: flex;
+  gap: 5px;
+  padding: 6px 2px;
+  align-items: center;
+}
+
+.typing-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--white-40);
+  animation: typing-bounce 1.2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.typing-dots span:nth-child(1) { animation-delay: 0s; }
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+.typing span {
   width: 7px;
   height: 7px;
   background: var(--white-60);
@@ -570,4 +590,170 @@ html, body {
     background: #050D1F;
     overflow: auto;
   }
+}
+
+/* ============================================================
+   LAYOUT DESKTOP COMPLETO (>= 900px)
+   ============================================================ */
+@media (min-width: 900px) {
+  html, body {
+    background: linear-gradient(135deg, #050D1F 0%, #0A1628 50%, #050D1F 100%);
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  .desktop-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    height: 100vh;
+    padding: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .app {
+    width: 420px;
+    min-width: 420px;
+    max-width: 420px;
+    height: calc(100vh - 48px);
+    margin: 0;
+    border-radius: 24px;
+    box-shadow: 0 0 80px rgba(59, 130, 246, 0.15), 0 0 40px rgba(0,0,0,0.6);
+    flex-shrink: 0;
+  }
+
+  /* Sidebar esquerda */
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 260px;
+    min-width: 260px;
+  }
+
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+  }
+
+  .sidebar-logo-text {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  .sidebar-logo-oren { color: #fff; }
+  .sidebar-logo-ia { color: #3B82F6; }
+
+  .sidebar-logo-tag {
+    font-size: 11px;
+    color: var(--white-40);
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    padding: 3px 8px;
+    border-radius: 20px;
+    margin-left: 4px;
+  }
+
+  .sidebar-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 20px;
+  }
+
+  .sidebar-card-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--white-40);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 16px;
+  }
+
+  .sidebar-metric {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .sidebar-metric:last-child { border-bottom: none; }
+
+  .sidebar-metric-label {
+    font-size: 13px;
+    color: var(--white-60);
+  }
+
+  .sidebar-metric-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .sidebar-metric-value.green { color: #4ADE80; }
+  .sidebar-metric-value.red { color: #F87171; }
+
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .sidebar-nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    color: var(--white-80);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    width: 100%;
+  }
+
+  .sidebar-nav-btn:hover {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.3);
+    color: #fff;
+  }
+
+  .sidebar-nav-icon { font-size: 18px; }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 16px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    text-align: center;
+  }
+
+  .sidebar-footer-text {
+    font-size: 11px;
+    color: var(--white-30);
+    line-height: 1.6;
+  }
+
+  .sidebar-footer-brand {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--white-40);
+    margin-top: 4px;
+  }
+}
+
+/* Esconde sidebar no mobile */
+.sidebar { display: none; }
+.desktop-wrapper {
+  display: contents;
 }
