@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useChat } from './hooks/useChat'
 import './index.css'
 
-// Session ID único por dispositivo
 const SESSION_ID = (() => {
   let id = localStorage.getItem('fin_session_id')
   if (!id) {
@@ -19,13 +18,25 @@ function parseMarkdown(texto) {
     .replace(/\n/g, '<br/>')
 }
 
+function Avatar() {
+  const [imgOk, setImgOk] = useState(true)
+  return (
+    <div className="avatar">
+      {imgOk
+        ? <img src="/fin-avatar.png" alt="Fin" onError={() => setImgOk(false)} />
+        : <span className="avatar-fallback">F</span>
+      }
+    </div>
+  )
+}
+
 export default function App() {
   const { mensagens, carregando, contexto, pdfUrl, enviarMensagem, buscarContexto } = useChat(SESSION_ID)
   const [input, setInput] = useState('')
   const [iniciado, setIniciado] = useState(false)
+  const [resumoDia, setResumoDia] = useState(null)
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
-  const [resumoDia, setResumoDia] = useState(null)
 
   useEffect(() => {
     buscarContexto().then(ctx => {
@@ -58,7 +69,6 @@ export default function App() {
     setInput('')
     setIniciado(true)
     await enviarMensagem(texto)
-    // Atualiza resumo após cada mensagem
     buscarContexto().then(ctx => {
       if (ctx) extrairResumoDia(ctx.contexto || '')
     })
@@ -77,7 +87,27 @@ export default function App() {
     inputRef.current?.focus()
   }
 
+  // Clique no botão Resumo do dia — mostra os cards diretamente
+  function handleResumoDia() {
+    if (resumoDia) {
+      setIniciado(true)
+      // Adiciona mensagem do usuário
+      // e chama enviarMensagem normalmente para o Fin responder
+    }
+    handleEnviar_com_texto('Resumo de hoje')
+  }
+
+  async function handleEnviar_com_texto(texto) {
+    setInput('')
+    setIniciado(true)
+    await enviarMensagem(texto)
+    buscarContexto().then(ctx => {
+      if (ctx) extrairResumoDia(ctx.contexto || '')
+    })
+  }
+
   const estabelecimento = contexto?.estabelecimento || 'Fin'
+  const hoje = new Date().toLocaleDateString('pt-BR')
 
   return (
     <div className="app">
@@ -102,10 +132,7 @@ export default function App() {
         {/* Saudação inicial */}
         {!iniciado && (
           <div className="message fin">
-            <div className="avatar">
-              <img src="/fin-avatar.png" alt="Fin" onError={e => e.target.style.display='none'} />
-              <span className="avatar-fallback">F</span>
-            </div>
+            <Avatar />
             <div className="bubble fin-bubble">
               <div className="bubble-header">
                 <span className="bubble-name">Fin</span>
@@ -116,8 +143,6 @@ export default function App() {
               <div className="bubble-content">
                 <p>Olá! Sou o Fin 👋</p>
                 <p>O que posso registrar ou consultar hoje?</p>
-
-                {/* Cards de atalho rápido */}
                 <div className="quick-actions">
                   <button className="quick-btn" onClick={() => handleAtalho('Resumo de hoje')}>
                     <span className="quick-icon">📊</span>
@@ -141,13 +166,10 @@ export default function App() {
           </div>
         )}
 
-        {/* Resumo do dia — aparece quando há dados */}
+        {/* Resumo do dia automático na abertura */}
         {!iniciado && resumoDia && (
           <div className="message fin">
-            <div className="avatar">
-              <img src="/fin-avatar.png" alt="Fin" onError={e => e.target.style.display='none'} />
-              <span className="avatar-fallback">F</span>
-            </div>
+            <Avatar />
             <div className="bubble fin-bubble">
               <div className="bubble-header">
                 <span className="bubble-name">Fin</span>
@@ -156,23 +178,24 @@ export default function App() {
               </div>
               <div className="bubble-content">
                 <p className="resumo-titulo">📊 Resumo de hoje — {estabelecimento}</p>
+                <p className="resumo-data">{hoje}</p>
                 <div className="metric-cards">
                   <div className="metric-card green">
-                    <span className="metric-label">Entradas</span>
+                    <span className="metric-label">ENTRADAS</span>
                     <span className="metric-value">R$ {resumoDia.entradas}</span>
                     <span className="metric-arrow">↑</span>
                   </div>
                   <div className="metric-card red">
-                    <span className="metric-label">Saídas</span>
+                    <span className="metric-label">SAÍDAS</span>
                     <span className="metric-value">R$ {resumoDia.saidas}</span>
                     <span className="metric-arrow">↓</span>
                   </div>
                   <div className="metric-card blue">
-                    <span className="metric-label">Saldo</span>
+                    <span className="metric-label">SALDO</span>
                     <span className="metric-value">R$ {resumoDia.saldo}</span>
                   </div>
                   <div className="metric-card gray">
-                    <span className="metric-label">Atendimentos</span>
+                    <span className="metric-label">ATENDIMENTOS</span>
                     <span className="metric-value">{resumoDia.atendimentos}</span>
                   </div>
                 </div>
@@ -184,12 +207,7 @@ export default function App() {
         {/* Histórico de mensagens */}
         {mensagens.map(msg => (
           <div key={msg.id} className={`message ${msg.role}`}>
-            {msg.role === 'assistant' && (
-              <div className="avatar">
-                <img src="/fin-avatar.png" alt="Fin" onError={e => e.target.style.display='none'} />
-                <span className="avatar-fallback">F</span>
-              </div>
-            )}
+            {msg.role === 'assistant' && <Avatar />}
             <div className={`bubble ${msg.role === 'assistant' ? 'fin-bubble' : 'user-bubble'}`}>
               {msg.role === 'assistant' && (
                 <div className="bubble-header">
@@ -204,9 +222,7 @@ export default function App() {
                 dangerouslySetInnerHTML={{ __html: parseMarkdown(msg.content) }}
               />
               {msg.streaming && <span className="cursor-blink">▋</span>}
-              {msg.role === 'user' && (
-                <span className="check-marks">✓✓</span>
-              )}
+              {msg.role === 'user' && <span className="check-marks">✓✓</span>}
             </div>
           </div>
         ))}
@@ -214,10 +230,7 @@ export default function App() {
         {/* Link do PDF */}
         {pdfUrl && (
           <div className="message fin">
-            <div className="avatar">
-              <img src="/fin-avatar.png" alt="Fin" onError={e => e.target.style.display='none'} />
-              <span className="avatar-fallback">F</span>
-            </div>
+            <Avatar />
             <div className="bubble fin-bubble">
               <div className="bubble-content">
                 <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className="pdf-link">
@@ -229,12 +242,9 @@ export default function App() {
         )}
 
         {/* Indicador de digitação */}
-        {carregando && mensagens[mensagens.length - 1]?.role !== 'assistant' && (
+        {carregando && (mensagens.length === 0 || mensagens[mensagens.length - 1]?.role !== 'assistant') && (
           <div className="message fin">
-            <div className="avatar">
-              <img src="/fin-avatar.png" alt="Fin" onError={e => e.target.style.display='none'} />
-              <span className="avatar-fallback">F</span>
-            </div>
+            <Avatar />
             <div className="bubble fin-bubble typing">
               <span></span><span></span><span></span>
             </div>
@@ -246,12 +256,12 @@ export default function App() {
 
       {/* Barra de atalhos */}
       <div className="shortcuts">
-        <button className="shortcut-btn" onClick={() => handleAtalho('Resumo de hoje')}>
+        <button className="shortcut-btn" onClick={handleResumoDia}>
           <span className="shortcut-icon">📊</span>
           <span className="shortcut-label">Resumo do dia</span>
           <span className="shortcut-sub">Ver indicadores</span>
         </button>
-        <button className="shortcut-btn" onClick={() => handleAtalho('Mostrar todos os lançamentos de hoje')}>
+        <button className="shortcut-btn" onClick={() => handleEnviar_com_texto('Mostrar todos os lançamentos de hoje')}>
           <span className="shortcut-icon">📋</span>
           <span className="shortcut-label">Lançamentos</span>
           <span className="shortcut-sub">Ver todos</span>
@@ -261,7 +271,7 @@ export default function App() {
           <span className="shortcut-label">Relatórios</span>
           <span className="shortcut-sub">Acessar</span>
         </button>
-        <button className="shortcut-btn" onClick={() => handleAtalho('Ver agenda de hoje')}>
+        <button className="shortcut-btn" onClick={() => handleEnviar_com_texto('Ver agenda de hoje')}>
           <span className="shortcut-icon">📅</span>
           <span className="shortcut-label">Agenda</span>
           <span className="shortcut-sub">Ver compromissos</span>
