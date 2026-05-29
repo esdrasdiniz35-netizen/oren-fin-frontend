@@ -27,7 +27,6 @@ function Avatar() {
         : <span className="avatar-fallback">F</span>
       }
     </div>
-    </div>
   )
 }
 
@@ -73,7 +72,7 @@ export default function App() {
   const [input, setInput] = useState('')
   const [iniciado, setIniciado] = useState(false)
   const [resumoDia, setResumoDia] = useState(null)
-  const [cardsInjetados, setCardsInjetados] = useState([]) // cards bonitos no histórico
+  const [cardsInjetados, setCardsInjetados] = useState([])
   const [carregandoResumo, setCarregandoResumo] = useState(false)
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
@@ -94,13 +93,16 @@ export default function App() {
     const saldo = contextoTexto.match(/Saldo do dia: R\$ ([\d.,]+)/)
     const atend = contextoTexto.match(/Atendimentos: (\d+)/)
     if (entradas || saidas) {
-      setResumoDia({
+      const r = {
         entradas: entradas?.[1] || '0,00',
         saidas: saidas?.[1] || '0,00',
         saldo: saldo?.[1] || '0,00',
         atendimentos: atend?.[1] || '0'
-      })
+      }
+      setResumoDia(r)
+      return r
     }
+    return null
   }
 
   async function handleEnviar() {
@@ -136,35 +138,17 @@ export default function App() {
     inputRef.current?.focus()
   }
 
-  // Botão Resumo do dia — busca contexto e injeta card
   async function handleResumoDia() {
     setIniciado(true)
     setCarregandoResumo(true)
-    // Busca contexto atualizado
     const ctx = await buscarContexto()
     let resumoAtual = resumoDia
     if (ctx) {
-      extrairResumoDia(ctx.contexto || '')
-      // Extrai inline também para ter o valor imediato
-      const contextoTexto = ctx.contexto || ''
-      const entradas = contextoTexto.match(/Total entradas: R\$ ([\d.,]+)/)
-      const saidas = contextoTexto.match(/Total saídas: R\$ ([\d.,]+)/)
-      const saldo = contextoTexto.match(/Saldo do dia: R\$ ([\d.,]+)/)
-      const atend = contextoTexto.match(/Atendimentos: (\d+)/)
-      if (entradas || saidas) {
-        resumoAtual = {
-          entradas: entradas?.[1] || '0,00',
-          saidas: saidas?.[1] || '0,00',
-          saldo: saldo?.[1] || '0,00',
-          atendimentos: atend?.[1] || '0'
-        }
-        setResumoDia(resumoAtual)
-      }
+      const r = extrairResumoDia(ctx.contexto || '')
+      if (r) resumoAtual = r
     }
-
-    // Injeta card no histórico visual
-    const id = Date.now()
     setCarregandoResumo(false)
+    const id = Date.now()
     setCardsInjetados(prev => [...prev, {
       id,
       tipo: 'resumo_dia',
@@ -174,29 +158,26 @@ export default function App() {
   }
 
   const estabelecimento = contexto?.estabelecimento || 'Fin'
+  const hoje = new Date().toLocaleDateString('pt-BR')
 
-  // Mescla mensagens com cards injetados em ordem
   const todasMensagens = []
   let cardIdx = 0
   mensagens.forEach((msg, i) => {
-    // Injeta cards que devem aparecer antes desta mensagem
     while (cardIdx < cardsInjetados.length && cardsInjetados[cardIdx].posicao <= i) {
       todasMensagens.push({ ...cardsInjetados[cardIdx], ehCard: true })
       cardIdx++
     }
     todasMensagens.push(msg)
   })
-  // Injeta cards restantes no final
   while (cardIdx < cardsInjetados.length) {
     todasMensagens.push({ ...cardsInjetados[cardIdx], ehCard: true })
     cardIdx++
   }
 
-  const hoje = new Date().toLocaleDateString('pt-BR')
-
   return (
     <div className="desktop-wrapper">
-      {/* Sidebar — só aparece no desktop */}
+
+      {/* Sidebar desktop */}
       <aside className="sidebar">
         <div className="sidebar-logo">
           <span className="sidebar-logo-text">
@@ -244,204 +225,191 @@ export default function App() {
         </div>
 
         <div className="sidebar-footer">
-          <div className="sidebar-footer-text">Gestão financeira inteligente<br/>para pequenos negócios</div>
+          <div className="sidebar-footer-text">Gestão financeira inteligente para pequenos negócios</div>
           <div className="sidebar-footer-brand">orenia.com.br</div>
         </div>
       </aside>
 
-    <div className="app">
-      {/* Header */}
-      <header className="header">
-        <div className="header-logo">
-          <span className="header-oren">Oren</span>
-          <span className="header-ia"> IA</span>
+      {/* Chat principal */}
+      <div className="app">
+        <header className="header">
+          <div className="header-logo">
+            <span className="header-oren">Oren</span>
+            <span className="header-ia"> IA</span>
+          </div>
+          <div className="header-actions">
+            <button className="header-btn" title="Histórico">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12,6 12,12 16,14"/>
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <main className="messages">
+          {!iniciado && (
+            <div className="message fin">
+              <Avatar />
+              <div className="bubble fin-bubble">
+                <div className="bubble-header">
+                  <span className="bubble-name">Fin</span>
+                  <span className="bubble-dot">•</span>
+                  <span className="bubble-brand">Oren IA</span>
+                  <span className="bubble-time">{new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})}</span>
+                </div>
+                <div className="bubble-content">
+                  <p>Olá! Sou o Fin 👋</p>
+                  <p>O que posso registrar ou consultar hoje?</p>
+                  <div className="quick-actions">
+                    <button className="quick-btn" onClick={handleResumoDia}>
+                      <span className="quick-icon">📊</span>
+                      <span>Resumo</span>
+                    </button>
+                    <button className="quick-btn" onClick={() => handleAtalho('Registrar lançamento')}>
+                      <span className="quick-icon">↕️</span>
+                      <span>Registrar</span>
+                    </button>
+                    <button className="quick-btn" onClick={() => handleAtalho('Consultar saldo')}>
+                      <span className="quick-icon">🔍</span>
+                      <span>Consultar</span>
+                    </button>
+                    <button className="quick-btn" onClick={() => handleAtalho('Quero um relatório')}>
+                      <span className="quick-icon">📈</span>
+                      <span>Relatórios</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!iniciado && resumoDia && (
+            <div className="message fin">
+              <Avatar />
+              <CardResumoDia resumo={resumoDia} estabelecimento={estabelecimento} data={hoje} />
+            </div>
+          )}
+
+          {todasMensagens.map(item => {
+            if (item.ehCard && item.tipo === 'resumo_dia' && (item.resumo || resumoDia)) {
+              return (
+                <div key={item.id} className="message fin">
+                  <Avatar />
+                  <CardResumoDia resumo={item.resumo || resumoDia} estabelecimento={estabelecimento} data={hoje} />
+                </div>
+              )
+            }
+
+            const msg = item
+            if (msg.streaming && !msg.content) {
+              return (
+                <div key={msg.id} className="message fin">
+                  <Avatar />
+                  <div className="bubble fin-bubble typing">
+                    <span></span><span></span><span></span>
+                  </div>
+                </div>
+              )
+            }
+
+            return (
+              <div key={msg.id} className={`message ${msg.role}`}>
+                {msg.role === 'assistant' && <Avatar />}
+                <div className={`bubble ${msg.role === 'assistant' ? 'fin-bubble' : 'user-bubble'}`}>
+                  {msg.role === 'assistant' && (
+                    <div className="bubble-header">
+                      <span className="bubble-name">Fin</span>
+                      <span className="bubble-dot">•</span>
+                      <span className="bubble-brand">Oren IA</span>
+                      <span className="bubble-time">{new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})}</span>
+                    </div>
+                  )}
+                  <div
+                    className="bubble-content"
+                    dangerouslySetInnerHTML={{ __html: parseMarkdown(msg.content) }}
+                  />
+                  {msg.role === 'user' && <span className="check-marks">✓✓</span>}
+                </div>
+              </div>
+            )
+          })}
+
+          {pdfUrl && (
+            <div className="message fin">
+              <Avatar />
+              <div className="bubble fin-bubble">
+                <div className="bubble-content">
+                  <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className="pdf-link">
+                    📄 Clique aqui para baixar seu relatório
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {carregandoResumo && (
+            <div className="message fin">
+              <Avatar />
+              <div className="bubble fin-bubble typing">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+          )}
+
+          <div ref={messagesEndRef} />
+        </main>
+
+        <div className="shortcuts">
+          <button className="shortcut-btn" onClick={handleResumoDia}>
+            <span className="shortcut-icon">📊</span>
+            <span className="shortcut-label">Resumo do dia</span>
+            <span className="shortcut-sub">Ver indicadores</span>
+          </button>
+          <button className="shortcut-btn" onClick={() => handleEnviarTexto('Mostrar todos os lançamentos de hoje')}>
+            <span className="shortcut-icon">📋</span>
+            <span className="shortcut-label">Lançamentos</span>
+            <span className="shortcut-sub">Ver todos</span>
+          </button>
+          <button className="shortcut-btn" onClick={() => handleAtalho('Quero um relatório')}>
+            <span className="shortcut-icon">📈</span>
+            <span className="shortcut-label">Relatórios</span>
+            <span className="shortcut-sub">Acessar</span>
+          </button>
+          <button className="shortcut-btn" onClick={() => handleEnviarTexto('Ver agenda de hoje')}>
+            <span className="shortcut-icon">📅</span>
+            <span className="shortcut-label">Agenda</span>
+            <span className="shortcut-sub">Ver compromissos</span>
+          </button>
         </div>
-        <div className="header-actions">
-          <button className="header-btn" title="Histórico">
+
+        <div className="input-area">
+          <button className="attach-btn" title="Anexar">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10"/>
-              <polyline points="12,6 12,12 16,14"/>
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
+            </svg>
+          </button>
+          <input
+            ref={inputRef}
+            className="input"
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Digite sua mensagem..."
+            disabled={carregando}
+            autoComplete="off"
+          />
+          <button
+            className={`send-btn ${input.trim() ? 'active' : ''}`}
+            onClick={handleEnviar}
+            disabled={!input.trim() || carregando}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <line x1="22" y1="2" x2="11" y2="13"/>
+              <polygon points="22,2 15,22 11,13 2,9"/>
             </svg>
           </button>
         </div>
-      </header>
-
-      {/* Mensagens */}
-      <main className="messages">
-        {/* Saudação inicial */}
-        {!iniciado && (
-          <div className="message fin">
-            <Avatar />
-            <div className="bubble fin-bubble">
-              <div className="bubble-header">
-                <span className="bubble-name">Fin</span>
-                <span className="bubble-dot">•</span>
-                <span className="bubble-brand">Oren IA</span>
-                <span className="bubble-time">{new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})}</span>
-              </div>
-              <div className="bubble-content">
-                <p>Olá! Sou o Fin 👋</p>
-                <p>O que posso registrar ou consultar hoje?</p>
-                <div className="quick-actions">
-                  <button className="quick-btn" onClick={handleResumoDia}>
-                    <span className="quick-icon">📊</span>
-                    <span>Resumo</span>
-                  </button>
-                  <button className="quick-btn" onClick={() => handleAtalho('Registrar lançamento')}>
-                    <span className="quick-icon">↕️</span>
-                    <span>Registrar</span>
-                  </button>
-                  <button className="quick-btn" onClick={() => handleAtalho('Consultar saldo')}>
-                    <span className="quick-icon">🔍</span>
-                    <span>Consultar</span>
-                  </button>
-                  <button className="quick-btn" onClick={() => handleAtalho('Quero um relatório')}>
-                    <span className="quick-icon">📈</span>
-                    <span>Relatórios</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Resumo do dia automático na abertura */}
-        {!iniciado && resumoDia && (
-          <div className="message fin">
-            <Avatar />
-            <CardResumoDia resumo={resumoDia} estabelecimento={estabelecimento} data={hoje} />
-          </div>
-        )}
-
-        {/* Histórico de mensagens + cards injetados */}
-        {todasMensagens.map(item => {
-          // Card bonito injetado
-          if (item.ehCard && item.tipo === 'resumo_dia' && (item.resumo || resumoDia)) {
-            return (
-              <div key={item.id} className="message fin">
-                <Avatar />
-                <CardResumoDia resumo={item.resumo || resumoDia} estabelecimento={estabelecimento} data={hoje} />
-              </div>
-            )
-          }
-
-          // Mensagem normal
-          const msg = item
-
-          // Enquanto streaming e sem conteúdo, mostra só os pontinhos
-          if (msg.streaming && !msg.content) {
-            return (
-              <div key={msg.id} className="message fin">
-                <Avatar />
-                <div className="bubble fin-bubble typing">
-                  <span></span><span></span><span></span>
-                </div>
-              </div>
-            )
-          }
-
-          return (
-            <div key={msg.id} className={`message ${msg.role}`}>
-              {msg.role === 'assistant' && <Avatar />}
-              <div className={`bubble ${msg.role === 'assistant' ? 'fin-bubble' : 'user-bubble'}`}>
-                {msg.role === 'assistant' && (
-                  <div className="bubble-header">
-                    <span className="bubble-name">Fin</span>
-                    <span className="bubble-dot">•</span>
-                    <span className="bubble-brand">Oren IA</span>
-                    <span className="bubble-time">{new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})}</span>
-                  </div>
-                )}
-                <div
-                  className="bubble-content"
-                  dangerouslySetInnerHTML={{ __html: parseMarkdown(msg.content) }}
-                />
-                {msg.role === 'user' && <span className="check-marks">✓✓</span>}
-              </div>
-            </div>
-          )
-        })}
-
-        {/* Link do PDF */}
-        {pdfUrl && (
-          <div className="message fin">
-            <Avatar />
-            <div className="bubble fin-bubble">
-              <div className="bubble-content">
-                <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className="pdf-link">
-                  📄 Clique aqui para baixar seu relatório
-                </a>
-              </div>
-            </div>
-          </div>
-        )}
-
-
-
-        {/* Indicador de digitação ao buscar resumo */}
-        {carregandoResumo && (
-          <div className="message fin">
-            <Avatar />
-            <div className="bubble fin-bubble typing">
-              <span></span><span></span><span></span>
-            </div>
-          </div>
-        )}
-
-        <div ref={messagesEndRef} />
-      </main>
-
-      {/* Barra de atalhos */}
-      <div className="shortcuts">
-        <button className="shortcut-btn" onClick={handleResumoDia}>
-          <span className="shortcut-icon">📊</span>
-          <span className="shortcut-label">Resumo do dia</span>
-          <span className="shortcut-sub">Ver indicadores</span>
-        </button>
-        <button className="shortcut-btn" onClick={() => handleEnviarTexto('Mostrar todos os lançamentos de hoje')}>
-          <span className="shortcut-icon">📋</span>
-          <span className="shortcut-label">Lançamentos</span>
-          <span className="shortcut-sub">Ver todos</span>
-        </button>
-        <button className="shortcut-btn" onClick={() => handleAtalho('Quero um relatório')}>
-          <span className="shortcut-icon">📈</span>
-          <span className="shortcut-label">Relatórios</span>
-          <span className="shortcut-sub">Acessar</span>
-        </button>
-        <button className="shortcut-btn" onClick={() => handleEnviarTexto('Ver agenda de hoje')}>
-          <span className="shortcut-icon">📅</span>
-          <span className="shortcut-label">Agenda</span>
-          <span className="shortcut-sub">Ver compromissos</span>
-        </button>
-      </div>
-
-      {/* Input */}
-      <div className="input-area">
-        <button className="attach-btn" title="Anexar">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
-          </svg>
-        </button>
-        <input
-          ref={inputRef}
-          className="input"
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Digite sua mensagem..."
-          disabled={carregando}
-          autoComplete="off"
-        />
-        <button
-          className={`send-btn ${input.trim() ? 'active' : ''}`}
-          onClick={handleEnviar}
-          disabled={!input.trim() || carregando}
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <line x1="22" y1="2" x2="11" y2="13"/>
-            <polygon points="22,2 15,22 11,13 2,9"/>
-          </svg>
-        </button>
       </div>
     </div>
   )
