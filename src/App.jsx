@@ -200,26 +200,8 @@ export default function App() {
                 <span className="bubble-time">{new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})}</span>
               </div>
               <div className="bubble-content">
-                <p>Olá! Sou o Fin 👋</p>
-                <p>O que posso registrar ou consultar hoje?</p>
-                <div className="quick-actions">
-                  <button className="quick-btn" onClick={handleResumoDia}>
-                    <span className="quick-icon">📊</span>
-                    <span>Resumo</span>
-                  </button>
-                  <button className="quick-btn" onClick={() => handleAtalho('Registrar lançamento')}>
-                    <span className="quick-icon">↕️</span>
-                    <span>Registrar</span>
-                  </button>
-                  <button className="quick-btn" onClick={() => handleAtalho('Consultar saldo')}>
-                    <span className="quick-icon">🔍</span>
-                    <span>Consultar</span>
-                  </button>
-                  <button className="quick-btn" onClick={() => handleAtalho('Quero um relatório')}>
-                    <span className="quick-icon">📈</span>
-                    <span>Relatórios</span>
-                  </button>
-                </div>
+                <p>Olá! Sou o Fin, seu assistente financeiro 👋</p>
+                <p>Como posso te ajudar hoje?</p>
               </div>
             </div>
           </div>
