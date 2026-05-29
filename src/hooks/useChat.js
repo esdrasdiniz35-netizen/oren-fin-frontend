@@ -2,6 +2,29 @@ import { useState, useCallback, useRef } from 'react'
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001'
 
+// Extrai o slug do subdomínio
+// pethousebh4821.orenia.com.br → pethousebh4821
+// localhost → usa variável de ambiente ou fallback
+function extrairSlug() {
+  const hostname = window.location.hostname
+
+  // Dev local — usa variável de ambiente ou slug fixo pra testar
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return import.meta.env.VITE_DEV_SLUG || 'pethousebh4821'
+  }
+
+  // Subdomínio real: pega a primeira parte antes do primeiro ponto
+  const partes = hostname.split('.')
+  if (partes.length >= 3) {
+    return partes[0]
+  }
+
+  // Fallback (não deve acontecer em produção)
+  return 'pethousebh4821'
+}
+
+const SLUG = extrairSlug()
+
 function limparTexto(texto) {
   let t = texto
   const idxRegistro = t.indexOf('DADOS_REGISTRO:')
@@ -20,7 +43,7 @@ export function useChat(sessionId) {
 
   const buscarContexto = useCallback(async () => {
     try {
-      const res = await fetch(`${BACKEND_URL}/contexto?session_id=${sessionId}`)
+      const res = await fetch(`${BACKEND_URL}/contexto?session_id=${sessionId}&slug=${SLUG}`)
       const data = await res.json()
       if (data.sucesso) {
         setContexto(data)
@@ -53,7 +76,8 @@ export function useChat(sessionId) {
           mensagem: texto,
           historico: historicoRef.current,
           contexto: ctx || contexto,
-          session_id: sessionId
+          session_id: sessionId,
+          slug: SLUG
         })
       })
 
@@ -61,7 +85,7 @@ export function useChat(sessionId) {
       const decoder = new TextDecoder()
       let textoAcumulado = ''
       let dadosPdf = null
-      let travado = false // flag para parar updates quando detectar GERAR_PDF
+      let travado = false
 
       while (true) {
         const { done, value } = await reader.read()
@@ -78,10 +102,8 @@ export function useChat(sessionId) {
             if (dados.tipo === 'texto') {
               textoAcumulado += dados.conteudo
 
-              // Se já está travado (detectou GERAR_PDF), não atualiza mais a tela
               if (travado) continue
 
-              // Detecta GERAR_PDF e trava os updates
               if (textoAcumulado.includes('GERAR_PDF:')) {
                 travado = true
                 const textoAntes = limparTexto(textoAcumulado)
@@ -92,7 +114,6 @@ export function useChat(sessionId) {
                 continue
               }
 
-              // Update normal
               const textoVisivel = limparTexto(textoAcumulado)
               setMensagens(prev => prev.map(m =>
                 m.id === idFin ? { ...m, content: textoVisivel } : m
