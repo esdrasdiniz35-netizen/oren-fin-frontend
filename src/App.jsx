@@ -73,6 +73,7 @@ export default function App() {
   const [iniciado, setIniciado] = useState(false)
   const [resumoDia, setResumoDia] = useState(null)
   const [cardsInjetados, setCardsInjetados] = useState([]) // cards bonitos no histórico
+  const [carregandoResumo, setCarregandoResumo] = useState(false)
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
 
@@ -137,6 +138,7 @@ export default function App() {
   // Botão Resumo do dia — busca contexto e injeta card
   async function handleResumoDia() {
     setIniciado(true)
+    setCarregandoResumo(true)
     // Busca contexto atualizado
     const ctx = await buscarContexto()
     let resumoAtual = resumoDia
@@ -161,6 +163,7 @@ export default function App() {
 
     // Injeta card no histórico visual
     const id = Date.now()
+    setCarregandoResumo(false)
     setCardsInjetados(prev => [...prev, {
       id,
       tipo: 'resumo_dia',
@@ -280,11 +283,17 @@ export default function App() {
                     <span className="bubble-time">{new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})}</span>
                   </div>
                 )}
-                <div
-                  className="bubble-content"
-                  dangerouslySetInnerHTML={{ __html: parseMarkdown(msg.content) }}
-                />
-                {msg.streaming && <span className="cursor-blink">▋</span>}
+                {msg.streaming && !msg.content ? (
+                  <div className="bubble fin-bubble typing" style={{boxShadow:'none',background:'transparent',padding:0}}>
+                    <span></span><span></span><span></span>
+                  </div>
+                ) : (
+                  <div
+                    className="bubble-content"
+                    dangerouslySetInnerHTML={{ __html: parseMarkdown(msg.content) }}
+                  />
+                )}
+                {msg.streaming && msg.content && <span className="cursor-blink">▋</span>}
                 {msg.role === 'user' && <span className="check-marks">✓✓</span>}
               </div>
             </div>
@@ -305,8 +314,10 @@ export default function App() {
           </div>
         )}
 
-        {/* Indicador de digitação */}
-        {carregando && (
+
+
+        {/* Indicador de digitação ao buscar resumo */}
+        {carregandoResumo && (
           <div className="message fin">
             <Avatar />
             <div className="bubble fin-bubble typing">
