@@ -30,11 +30,49 @@ function Avatar() {
   )
 }
 
+function CardResumoDia({ resumo, estabelecimento, data }) {
+  return (
+    <div className="bubble fin-bubble">
+      <div className="bubble-header">
+        <span className="bubble-name">Fin</span>
+        <span className="bubble-dot">•</span>
+        <span className="bubble-brand">Oren IA</span>
+        <span className="bubble-time">{new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})}</span>
+      </div>
+      <div className="bubble-content">
+        <p className="resumo-titulo">📊 Resumo de hoje — {estabelecimento}</p>
+        <p className="resumo-data">{data}</p>
+        <div className="metric-cards">
+          <div className="metric-card green">
+            <span className="metric-label">ENTRADAS</span>
+            <span className="metric-value">R$ {resumo.entradas}</span>
+            <span className="metric-arrow">↑</span>
+          </div>
+          <div className="metric-card red">
+            <span className="metric-label">SAÍDAS</span>
+            <span className="metric-value">R$ {resumo.saidas}</span>
+            <span className="metric-arrow">↓</span>
+          </div>
+          <div className="metric-card blue">
+            <span className="metric-label">SALDO</span>
+            <span className="metric-value">R$ {resumo.saldo}</span>
+          </div>
+          <div className="metric-card gray">
+            <span className="metric-label">ATENDIMENTOS</span>
+            <span className="metric-value">{resumo.atendimentos}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function App() {
   const { mensagens, carregando, contexto, pdfUrl, enviarMensagem, buscarContexto } = useChat(SESSION_ID)
   const [input, setInput] = useState('')
   const [iniciado, setIniciado] = useState(false)
   const [resumoDia, setResumoDia] = useState(null)
+  const [cardsInjetados, setCardsInjetados] = useState([]) // cards bonitos no histórico
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
 
@@ -46,7 +84,7 @@ export default function App() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [mensagens])
+  }, [mensagens, cardsInjetados])
 
   function extrairResumoDia(contextoTexto) {
     const entradas = contextoTexto.match(/Total entradas: R\$ ([\d.,]+)/)
@@ -75,6 +113,15 @@ export default function App() {
     inputRef.current?.focus()
   }
 
+  async function handleEnviarTexto(texto) {
+    setInput('')
+    setIniciado(true)
+    await enviarMensagem(texto)
+    buscarContexto().then(ctx => {
+      if (ctx) extrairResumoDia(ctx.contexto || '')
+    })
+  }
+
   function handleKeyDown(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
@@ -87,27 +134,41 @@ export default function App() {
     inputRef.current?.focus()
   }
 
-  // Clique no botão Resumo do dia — mostra os cards diretamente
-  function handleResumoDia() {
-    if (resumoDia) {
-      setIniciado(true)
-      // Adiciona mensagem do usuário
-      // e chama enviarMensagem normalmente para o Fin responder
-    }
-    handleEnviar_com_texto('Resumo de hoje')
-  }
-
-  async function handleEnviar_com_texto(texto) {
-    setInput('')
+  // Botão Resumo do dia — injeta card bonito no chat
+  async function handleResumoDia() {
     setIniciado(true)
-    await enviarMensagem(texto)
-    buscarContexto().then(ctx => {
-      if (ctx) extrairResumoDia(ctx.contexto || '')
-    })
+    // Busca contexto atualizado
+    const ctx = await buscarContexto()
+    if (ctx) extrairResumoDia(ctx.contexto || '')
+
+    // Injeta card no histórico visual
+    const id = Date.now()
+    setCardsInjetados(prev => [...prev, {
+      id,
+      tipo: 'resumo_dia',
+      posicao: mensagens.length // depois das mensagens atuais
+    }])
   }
 
   const estabelecimento = contexto?.estabelecimento || 'Fin'
   const hoje = new Date().toLocaleDateString('pt-BR')
+
+  // Mescla mensagens com cards injetados em ordem
+  const todasMensagens = []
+  let cardIdx = 0
+  mensagens.forEach((msg, i) => {
+    // Injeta cards que devem aparecer antes desta mensagem
+    while (cardIdx < cardsInjetados.length && cardsInjetados[cardIdx].posicao <= i) {
+      todasMensagens.push({ ...cardsInjetados[cardIdx], ehCard: true })
+      cardIdx++
+    }
+    todasMensagens.push(msg)
+  })
+  // Injeta cards restantes no final
+  while (cardIdx < cardsInjetados.length) {
+    todasMensagens.push({ ...cardsInjetados[cardIdx], ehCard: true })
+    cardIdx++
+  }
 
   return (
     <div className="app">
@@ -144,11 +205,11 @@ export default function App() {
                 <p>Olá! Sou o Fin 👋</p>
                 <p>O que posso registrar ou consultar hoje?</p>
                 <div className="quick-actions">
-                  <button className="quick-btn" onClick={() => handleAtalho('Resumo de hoje')}>
+                  <button className="quick-btn" onClick={handleResumoDia}>
                     <span className="quick-icon">📊</span>
                     <span>Resumo</span>
                   </button>
-                  <button className="quick-btn" onClick={() => handleAtalho('Registrar')}>
+                  <button className="quick-btn" onClick={() => handleAtalho('Registrar lançamento')}>
                     <span className="quick-icon">↕️</span>
                     <span>Registrar</span>
                   </button>
@@ -156,7 +217,7 @@ export default function App() {
                     <span className="quick-icon">🔍</span>
                     <span>Consultar</span>
                   </button>
-                  <button className="quick-btn" onClick={() => handleAtalho('Relatório do mês')}>
+                  <button className="quick-btn" onClick={() => handleAtalho('Quero um relatório')}>
                     <span className="quick-icon">📈</span>
                     <span>Relatórios</span>
                   </button>
@@ -170,62 +231,46 @@ export default function App() {
         {!iniciado && resumoDia && (
           <div className="message fin">
             <Avatar />
-            <div className="bubble fin-bubble">
-              <div className="bubble-header">
-                <span className="bubble-name">Fin</span>
-                <span className="bubble-dot">•</span>
-                <span className="bubble-brand">Oren IA</span>
-              </div>
-              <div className="bubble-content">
-                <p className="resumo-titulo">📊 Resumo de hoje — {estabelecimento}</p>
-                <p className="resumo-data">{hoje}</p>
-                <div className="metric-cards">
-                  <div className="metric-card green">
-                    <span className="metric-label">ENTRADAS</span>
-                    <span className="metric-value">R$ {resumoDia.entradas}</span>
-                    <span className="metric-arrow">↑</span>
-                  </div>
-                  <div className="metric-card red">
-                    <span className="metric-label">SAÍDAS</span>
-                    <span className="metric-value">R$ {resumoDia.saidas}</span>
-                    <span className="metric-arrow">↓</span>
-                  </div>
-                  <div className="metric-card blue">
-                    <span className="metric-label">SALDO</span>
-                    <span className="metric-value">R$ {resumoDia.saldo}</span>
-                  </div>
-                  <div className="metric-card gray">
-                    <span className="metric-label">ATENDIMENTOS</span>
-                    <span className="metric-value">{resumoDia.atendimentos}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <CardResumoDia resumo={resumoDia} estabelecimento={estabelecimento} data={hoje} />
           </div>
         )}
 
-        {/* Histórico de mensagens */}
-        {mensagens.map(msg => (
-          <div key={msg.id} className={`message ${msg.role}`}>
-            {msg.role === 'assistant' && <Avatar />}
-            <div className={`bubble ${msg.role === 'assistant' ? 'fin-bubble' : 'user-bubble'}`}>
-              {msg.role === 'assistant' && (
-                <div className="bubble-header">
-                  <span className="bubble-name">Fin</span>
-                  <span className="bubble-dot">•</span>
-                  <span className="bubble-brand">Oren IA</span>
-                  <span className="bubble-time">{new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})}</span>
-                </div>
-              )}
-              <div
-                className="bubble-content"
-                dangerouslySetInnerHTML={{ __html: parseMarkdown(msg.content) }}
-              />
-              {msg.streaming && <span className="cursor-blink">▋</span>}
-              {msg.role === 'user' && <span className="check-marks">✓✓</span>}
+        {/* Histórico de mensagens + cards injetados */}
+        {todasMensagens.map(item => {
+          // Card bonito injetado
+          if (item.ehCard && item.tipo === 'resumo_dia' && resumoDia) {
+            return (
+              <div key={item.id} className="message fin">
+                <Avatar />
+                <CardResumoDia resumo={resumoDia} estabelecimento={estabelecimento} data={hoje} />
+              </div>
+            )
+          }
+
+          // Mensagem normal
+          const msg = item
+          return (
+            <div key={msg.id} className={`message ${msg.role}`}>
+              {msg.role === 'assistant' && <Avatar />}
+              <div className={`bubble ${msg.role === 'assistant' ? 'fin-bubble' : 'user-bubble'}`}>
+                {msg.role === 'assistant' && (
+                  <div className="bubble-header">
+                    <span className="bubble-name">Fin</span>
+                    <span className="bubble-dot">•</span>
+                    <span className="bubble-brand">Oren IA</span>
+                    <span className="bubble-time">{new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})}</span>
+                  </div>
+                )}
+                <div
+                  className="bubble-content"
+                  dangerouslySetInnerHTML={{ __html: parseMarkdown(msg.content) }}
+                />
+                {msg.streaming && <span className="cursor-blink">▋</span>}
+                {msg.role === 'user' && <span className="check-marks">✓✓</span>}
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
 
         {/* Link do PDF */}
         {pdfUrl && (
@@ -242,7 +287,7 @@ export default function App() {
         )}
 
         {/* Indicador de digitação */}
-        {carregando && (mensagens.length === 0 || mensagens[mensagens.length - 1]?.role !== 'assistant') && (
+        {carregando && (
           <div className="message fin">
             <Avatar />
             <div className="bubble fin-bubble typing">
@@ -261,7 +306,7 @@ export default function App() {
           <span className="shortcut-label">Resumo do dia</span>
           <span className="shortcut-sub">Ver indicadores</span>
         </button>
-        <button className="shortcut-btn" onClick={() => handleEnviar_com_texto('Mostrar todos os lançamentos de hoje')}>
+        <button className="shortcut-btn" onClick={() => handleEnviarTexto('Mostrar todos os lançamentos de hoje')}>
           <span className="shortcut-icon">📋</span>
           <span className="shortcut-label">Lançamentos</span>
           <span className="shortcut-sub">Ver todos</span>
@@ -271,7 +316,7 @@ export default function App() {
           <span className="shortcut-label">Relatórios</span>
           <span className="shortcut-sub">Acessar</span>
         </button>
-        <button className="shortcut-btn" onClick={() => handleEnviar_com_texto('Ver agenda de hoje')}>
+        <button className="shortcut-btn" onClick={() => handleEnviarTexto('Ver agenda de hoje')}>
           <span className="shortcut-icon">📅</span>
           <span className="shortcut-label">Agenda</span>
           <span className="shortcut-sub">Ver compromissos</span>
