@@ -74,6 +74,7 @@ export default function App() {
   const [resumoDia, setResumoDia] = useState(null)
   const [cardsInjetados, setCardsInjetados] = useState([])
   const [carregandoResumo, setCarregandoResumo] = useState(false)
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 900)
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
 
@@ -81,11 +82,14 @@ export default function App() {
     buscarContexto().then(ctx => {
       if (ctx) extrairResumoDia(ctx.contexto || '')
     })
+    const handleResize = () => setIsDesktop(window.innerWidth >= 900)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
   }, [])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [mensagens, cardsInjetados])
+  }, [mensagens, cardsInjetados, carregandoResumo])
 
   function extrairResumoDia(contextoTexto) {
     const entradas = contextoTexto.match(/Total entradas: R\$ ([\d.,]+)/)
@@ -174,20 +178,13 @@ export default function App() {
     cardIdx++
   }
 
-  const chatContent = (
+  const chat = (
     <div className="app">
+      {/* Header — sem reloginho */}
       <header className="header">
         <div className="header-logo">
           <span className="header-oren">Oren</span>
           <span className="header-ia"> IA</span>
-        </div>
-        <div className="header-actions">
-          <button className="header-btn" title="Histórico">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10"/>
-              <polyline points="12,6 12,12 16,14"/>
-            </svg>
-          </button>
         </div>
       </header>
 
@@ -304,35 +301,34 @@ export default function App() {
         <div ref={messagesEndRef} />
       </main>
 
-      <div className="shortcuts">
-        <button className="shortcut-btn" onClick={handleResumoDia}>
-          <span className="shortcut-icon">📊</span>
-          <span className="shortcut-label">Resumo do dia</span>
-          <span className="shortcut-sub">Ver indicadores</span>
-        </button>
-        <button className="shortcut-btn" onClick={() => handleEnviarTexto('Mostrar todos os lançamentos de hoje')}>
-          <span className="shortcut-icon">📋</span>
-          <span className="shortcut-label">Lançamentos</span>
-          <span className="shortcut-sub">Ver todos</span>
-        </button>
-        <button className="shortcut-btn" onClick={() => handleAtalho('Quero um relatório')}>
-          <span className="shortcut-icon">📈</span>
-          <span className="shortcut-label">Relatórios</span>
-          <span className="shortcut-sub">Acessar</span>
-        </button>
-        <button className="shortcut-btn" onClick={() => handleEnviarTexto('Ver agenda de hoje')}>
-          <span className="shortcut-icon">📅</span>
-          <span className="shortcut-label">Agenda</span>
-          <span className="shortcut-sub">Ver compromissos</span>
-        </button>
-      </div>
+      {/* Atalhos — só no mobile */}
+      {!isDesktop && (
+        <div className="shortcuts">
+          <button className="shortcut-btn" onClick={handleResumoDia}>
+            <span className="shortcut-icon">📊</span>
+            <span className="shortcut-label">Resumo do dia</span>
+            <span className="shortcut-sub">Ver indicadores</span>
+          </button>
+          <button className="shortcut-btn" onClick={() => handleEnviarTexto('Mostrar todos os lançamentos de hoje')}>
+            <span className="shortcut-icon">📋</span>
+            <span className="shortcut-label">Lançamentos</span>
+            <span className="shortcut-sub">Ver todos</span>
+          </button>
+          <button className="shortcut-btn" onClick={() => handleAtalho('Quero um relatório')}>
+            <span className="shortcut-icon">📈</span>
+            <span className="shortcut-label">Relatórios</span>
+            <span className="shortcut-sub">Acessar</span>
+          </button>
+          <button className="shortcut-btn" onClick={() => handleEnviarTexto('Ver agenda de hoje')}>
+            <span className="shortcut-icon">📅</span>
+            <span className="shortcut-label">Agenda</span>
+            <span className="shortcut-sub">Ver compromissos</span>
+          </button>
+        </div>
+      )}
 
+      {/* Input — sem ícone de anexo */}
       <div className="input-area">
-        <button className="attach-btn" title="Anexar">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
-          </svg>
-        </button>
         <input
           ref={inputRef}
           className="input"
@@ -359,19 +355,13 @@ export default function App() {
 
   return (
     <div className="desktop-wrapper">
-      {/* Logo desktop no topo */}
+      {/* Slogan no topo — só desktop */}
       <div className="desktop-logo">
-        <span className="desktop-logo-text">
-          <span className="desktop-logo-oren">Oren</span>
-          <span className="desktop-logo-ia"> IA</span>
-        </span>
-        <div className="desktop-logo-divider" />
-        <span className="desktop-logo-sub">Assistente Financeiro</span>
+        <span className="desktop-logo-slogan">Gestão que entende você.</span>
       </div>
 
-      {/* Layout do meio */}
       <div className="desktop-main">
-        {/* Botões laterais esquerda */}
+        {/* Botões esquerda */}
         <nav className="desktop-nav desktop-nav-left">
           <button className="desktop-nav-btn" onClick={handleResumoDia}>
             <span className="nav-icon">📊</span>
@@ -389,10 +379,9 @@ export default function App() {
           </button>
         </nav>
 
-        {/* Chat central */}
-        {chatContent}
+        {chat}
 
-        {/* Botões laterais direita */}
+        {/* Botões direita */}
         <nav className="desktop-nav desktop-nav-right">
           <button className="desktop-nav-btn" onClick={() => handleAtalho('Quero um relatório')}>
             <span className="nav-icon">📈</span>
