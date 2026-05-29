@@ -27,6 +27,7 @@ function Avatar() {
         : <span className="avatar-fallback">F</span>
       }
     </div>
+    </div>
   )
 }
 
@@ -173,7 +174,6 @@ export default function App() {
   }
 
   const estabelecimento = contexto?.estabelecimento || 'Fin'
-  const hoje = new Date().toLocaleDateString('pt-BR')
 
   // Mescla mensagens com cards injetados em ordem
   const todasMensagens = []
@@ -192,7 +192,63 @@ export default function App() {
     cardIdx++
   }
 
+  const hoje = new Date().toLocaleDateString('pt-BR')
+
   return (
+    <div className="desktop-wrapper">
+      {/* Sidebar — só aparece no desktop */}
+      <aside className="sidebar">
+        <div className="sidebar-logo">
+          <span className="sidebar-logo-text">
+            <span className="sidebar-logo-oren">Oren</span>
+            <span className="sidebar-logo-ia"> IA</span>
+          </span>
+          <span className="sidebar-logo-tag">Fin</span>
+        </div>
+
+        {resumoDia && (
+          <div className="sidebar-card">
+            <div className="sidebar-card-title">📊 Resumo de hoje</div>
+            <div className="sidebar-metric">
+              <span className="sidebar-metric-label">Entradas</span>
+              <span className="sidebar-metric-value green">R$ {resumoDia.entradas}</span>
+            </div>
+            <div className="sidebar-metric">
+              <span className="sidebar-metric-label">Saídas</span>
+              <span className="sidebar-metric-value red">R$ {resumoDia.saidas}</span>
+            </div>
+            <div className="sidebar-metric">
+              <span className="sidebar-metric-label">Saldo</span>
+              <span className="sidebar-metric-value">R$ {resumoDia.saldo}</span>
+            </div>
+            <div className="sidebar-metric">
+              <span className="sidebar-metric-label">Atendimentos</span>
+              <span className="sidebar-metric-value">{resumoDia.atendimentos}</span>
+            </div>
+          </div>
+        )}
+
+        <div className="sidebar-nav">
+          <button className="sidebar-nav-btn" onClick={handleResumoDia}>
+            <span className="sidebar-nav-icon">📊</span> Resumo do dia
+          </button>
+          <button className="sidebar-nav-btn" onClick={() => handleEnviarTexto('Mostrar todos os lançamentos de hoje')}>
+            <span className="sidebar-nav-icon">📋</span> Lançamentos
+          </button>
+          <button className="sidebar-nav-btn" onClick={() => handleAtalho('Quero um relatório')}>
+            <span className="sidebar-nav-icon">📈</span> Relatórios
+          </button>
+          <button className="sidebar-nav-btn" onClick={() => handleEnviarTexto('Ver agenda de hoje')}>
+            <span className="sidebar-nav-icon">📅</span> Agenda
+          </button>
+        </div>
+
+        <div className="sidebar-footer">
+          <div className="sidebar-footer-text">Gestão financeira inteligente<br/>para pequenos negócios</div>
+          <div className="sidebar-footer-brand">orenia.com.br</div>
+        </div>
+      </aside>
+
     <div className="app">
       {/* Header */}
       <header className="header">
