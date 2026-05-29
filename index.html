@@ -1,18 +1,573 @@
-<!doctype html>
-<html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="theme-color" content="#0A1F44" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Fin" />
-    <link rel="icon" type="image/png" href="/fin-avatar.png" />
-    <link rel="apple-touch-icon" href="/fin-avatar.png" />
-    <title>Fin — Oren IA</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
-</html>
+/* ============================================================
+   OREN IA — FIN | CSS
+   Navy #0A1F44 | Blue #2563EB | Green #16A34A
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --navy: #0A1F44;
+  --navy-light: #0D2655;
+  --navy-lighter: #112D6A;
+  --blue: #2563EB;
+  --blue-light: #3B82F6;
+  --green: #16A34A;
+  --red: #DC2626;
+  --white: #FFFFFF;
+  --white-80: rgba(255,255,255,0.8);
+  --white-60: rgba(255,255,255,0.6);
+  --white-20: rgba(255,255,255,0.2);
+  --white-10: rgba(255,255,255,0.1);
+  --white-05: rgba(255,255,255,0.05);
+  --font: 'Inter', -apple-system, sans-serif;
+  --radius: 16px;
+  --radius-sm: 8px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--navy);
+}
+
+#root {
+  height: 100%;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  background: var(--navy);
+  font-family: var(--font);
+  color: var(--white);
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 12px;
+  background: var(--navy);
+  border-bottom: 1px solid var(--white-10);
+  flex-shrink: 0;
+  padding-top: max(16px, env(safe-area-inset-top, 16px));
+}
+
+.header-logo {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.header-oren {
+  color: var(--white);
+}
+
+.header-ia {
+  color: var(--blue-light);
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.header-btn {
+  background: var(--white-10);
+  border: none;
+  color: var(--white-60);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.header-btn:hover {
+  background: var(--white-20);
+}
+
+/* ============================================================
+   MESSAGES
+   ============================================================ */
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 16px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  scroll-behavior: smooth;
+}
+
+.messages::-webkit-scrollbar {
+  width: 0;
+}
+
+/* ============================================================
+   MESSAGE ROW
+   ============================================================ */
+.message {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.message.user {
+  flex-direction: row-reverse;
+}
+
+/* ============================================================
+   AVATAR
+   ============================================================ */
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--blue);
+  flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--blue-light);
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-fallback {
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+  position: absolute;
+}
+
+/* ============================================================
+   BUBBLES
+   ============================================================ */
+.bubble {
+  max-width: calc(100% - 52px);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  position: relative;
+}
+
+.fin-bubble {
+  background: var(--navy-light);
+  border: 1px solid var(--white-10);
+  border-bottom-left-radius: 4px;
+}
+
+.user-bubble {
+  background: var(--blue);
+  border-bottom-right-radius: 4px;
+  padding: 10px 14px;
+}
+
+.bubble-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.bubble-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--white);
+}
+
+.bubble-dot {
+  color: var(--white-40, rgba(255,255,255,0.4));
+  font-size: 10px;
+}
+
+.bubble-brand {
+  font-size: 11px;
+  color: var(--blue-light);
+  font-weight: 500;
+}
+
+.bubble-time {
+  font-size: 11px;
+  color: var(--white-60);
+  margin-left: auto;
+}
+
+.bubble-content {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--white-80);
+}
+
+.bubble-content p {
+  margin-bottom: 4px;
+}
+
+.bubble-content p:last-child {
+  margin-bottom: 0;
+}
+
+.bubble-content strong {
+  color: var(--white);
+  font-weight: 600;
+}
+
+.user-bubble .bubble-content {
+  color: var(--white);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.check-marks {
+  display: block;
+  text-align: right;
+  font-size: 11px;
+  color: rgba(255,255,255,0.6);
+  margin-top: 4px;
+}
+
+/* Cursor piscando durante streaming */
+.cursor-blink {
+  display: inline-block;
+  animation: blink 0.8s infinite;
+  color: var(--blue-light);
+  margin-left: 2px;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* ============================================================
+   TYPING INDICATOR
+   ============================================================ */
+.bubble.typing {
+  padding: 14px 18px;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.bubble.typing span {
+  width: 7px;
+  height: 7px;
+  background: var(--white-60);
+  border-radius: 50%;
+  animation: typing 1.2s infinite;
+}
+
+.bubble.typing span:nth-child(2) { animation-delay: 0.2s; }
+.bubble.typing span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-6px); opacity: 1; }
+}
+
+/* ============================================================
+   QUICK ACTIONS (botões na saudação inicial)
+   ============================================================ */
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.quick-btn {
+  background: var(--navy-lighter);
+  border: 1px solid var(--white-10);
+  border-radius: var(--radius-sm);
+  color: var(--white);
+  padding: 10px 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 500;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.quick-btn:hover {
+  background: var(--blue);
+  border-color: var(--blue-light);
+}
+
+.quick-icon {
+  font-size: 18px;
+}
+
+/* ============================================================
+   METRIC CARDS (resumo do dia)
+   ============================================================ */
+.resumo-data {
+  font-size: 12px;
+  color: var(--white-60);
+  margin-bottom: 10px !important;
+  margin-top: -4px !important;
+}
+
+.resumo-titulo {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--white);
+  margin-bottom: 12px !important;
+}
+
+.metric-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.metric-card {
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+.metric-card.green { background: rgba(22, 163, 74, 0.2); border: 1px solid rgba(22, 163, 74, 0.4); }
+.metric-card.red   { background: rgba(220, 38, 38, 0.2); border: 1px solid rgba(220, 38, 38, 0.4); }
+.metric-card.blue  { background: rgba(37, 99, 235, 0.2); border: 1px solid rgba(37, 99, 235, 0.4); }
+.metric-card.gray  { background: var(--white-05); border: 1px solid var(--white-10); }
+
+.metric-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--white-60);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metric-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--white);
+}
+
+.metric-card.green .metric-value { color: #4ADE80; }
+.metric-card.red .metric-value   { color: #F87171; }
+
+.metric-arrow {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  font-size: 16px;
+  opacity: 0.5;
+}
+
+.metric-card.green .metric-arrow { color: #4ADE80; }
+.metric-card.red .metric-arrow   { color: #F87171; }
+
+/* ============================================================
+   PDF LINK
+   ============================================================ */
+.pdf-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--blue-light);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 12px;
+  background: var(--white-05);
+  border: 1px solid var(--white-10);
+  border-radius: var(--radius-sm);
+  transition: background 0.2s;
+}
+
+.pdf-link:hover {
+  background: var(--white-10);
+}
+
+/* ============================================================
+   SHORTCUTS BAR
+   ============================================================ */
+.shortcuts {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--navy-light);
+  border-top: 1px solid var(--white-10);
+  flex-shrink: 0;
+}
+
+.shortcut-btn {
+  background: var(--white-05);
+  border: 1px solid var(--white-10);
+  border-radius: var(--radius-sm);
+  color: var(--white);
+  padding: 8px 4px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-family: var(--font);
+  transition: background 0.2s;
+}
+
+.shortcut-btn:hover {
+  background: var(--white-10);
+}
+
+.shortcut-btn:active {
+  background: var(--blue);
+}
+
+.shortcut-icon {
+  font-size: 16px;
+}
+
+.shortcut-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--white);
+}
+
+.shortcut-sub {
+  font-size: 9px;
+  color: var(--white-60);
+}
+
+/* ============================================================
+   INPUT AREA
+   ============================================================ */
+.input-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  padding-bottom: max(10px, calc(10px + var(--safe-bottom)));
+  background: var(--navy);
+  border-top: 1px solid var(--white-10);
+  flex-shrink: 0;
+}
+
+.attach-btn {
+  background: transparent;
+  border: none;
+  color: var(--white-60);
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+
+.attach-btn:hover {
+  color: var(--white);
+}
+
+.input {
+  flex: 1;
+  background: var(--navy-light);
+  border: 1px solid var(--white-20);
+  border-radius: 24px;
+  color: var(--white);
+  font-family: var(--font);
+  font-size: 14px;
+  padding: 10px 16px;
+  outline: none;
+  transition: border-color 0.2s;
+  min-height: 42px;
+}
+
+.input::placeholder {
+  color: var(--white-60);
+}
+
+.input:focus {
+  border-color: var(--blue);
+}
+
+.input:disabled {
+  opacity: 0.6;
+}
+
+.send-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: none;
+  background: var(--white-20);
+  color: var(--white-60);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.2s, color 0.2s, transform 0.1s;
+}
+
+.send-btn.active {
+  background: var(--blue);
+  color: var(--white);
+}
+
+.send-btn.active:hover {
+  background: var(--blue-light);
+}
+
+.send-btn:active {
+  transform: scale(0.95);
+}
+
+.send-btn:disabled {
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   DESKTOP
+   ============================================================ */
+@media (min-width: 481px) {
+  .app {
+    box-shadow: 0 0 60px rgba(0,0,0,0.5);
+    border-radius: 24px;
+    margin: 20px auto;
+    height: calc(100dvh - 40px);
+  }
+
+  html, body {
+    background: #050D1F;
+    overflow: auto;
+  }
+}
