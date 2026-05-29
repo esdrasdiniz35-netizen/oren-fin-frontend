@@ -271,6 +271,19 @@ export default function App() {
 
           // Mensagem normal
           const msg = item
+
+          // Enquanto streaming e sem conteúdo, mostra só os pontinhos
+          if (msg.streaming && !msg.content) {
+            return (
+              <div key={msg.id} className="message fin">
+                <Avatar />
+                <div className="bubble fin-bubble typing">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            )
+          }
+
           return (
             <div key={msg.id} className={`message ${msg.role}`}>
               {msg.role === 'assistant' && <Avatar />}
@@ -283,17 +296,10 @@ export default function App() {
                     <span className="bubble-time">{new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})}</span>
                   </div>
                 )}
-                {msg.streaming && !msg.content ? (
-                  <div className="bubble fin-bubble typing" style={{boxShadow:'none',background:'transparent',padding:0}}>
-                    <span></span><span></span><span></span>
-                  </div>
-                ) : (
-                  <div
-                    className="bubble-content"
-                    dangerouslySetInnerHTML={{ __html: parseMarkdown(msg.content) }}
-                  />
-                )}
-                {msg.streaming && msg.content && <span className="cursor-blink">▋</span>}
+                <div
+                  className="bubble-content"
+                  dangerouslySetInnerHTML={{ __html: parseMarkdown(msg.content) }}
+                />
                 {msg.role === 'user' && <span className="check-marks">✓✓</span>}
               </div>
             </div>
