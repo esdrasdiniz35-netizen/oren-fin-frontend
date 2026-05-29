@@ -134,19 +134,38 @@ export default function App() {
     inputRef.current?.focus()
   }
 
-  // Botão Resumo do dia — injeta card bonito no chat
+  // Botão Resumo do dia — busca contexto e injeta card
   async function handleResumoDia() {
     setIniciado(true)
     // Busca contexto atualizado
     const ctx = await buscarContexto()
-    if (ctx) extrairResumoDia(ctx.contexto || '')
+    let resumoAtual = resumoDia
+    if (ctx) {
+      extrairResumoDia(ctx.contexto || '')
+      // Extrai inline também para ter o valor imediato
+      const contextoTexto = ctx.contexto || ''
+      const entradas = contextoTexto.match(/Total entradas: R\$ ([\d.,]+)/)
+      const saidas = contextoTexto.match(/Total saídas: R\$ ([\d.,]+)/)
+      const saldo = contextoTexto.match(/Saldo do dia: R\$ ([\d.,]+)/)
+      const atend = contextoTexto.match(/Atendimentos: (\d+)/)
+      if (entradas || saidas) {
+        resumoAtual = {
+          entradas: entradas?.[1] || '0,00',
+          saidas: saidas?.[1] || '0,00',
+          saldo: saldo?.[1] || '0,00',
+          atendimentos: atend?.[1] || '0'
+        }
+        setResumoDia(resumoAtual)
+      }
+    }
 
     // Injeta card no histórico visual
     const id = Date.now()
     setCardsInjetados(prev => [...prev, {
       id,
       tipo: 'resumo_dia',
-      posicao: mensagens.length // depois das mensagens atuais
+      resumo: resumoAtual,
+      posicao: mensagens.length
     }])
   }
 
@@ -238,11 +257,11 @@ export default function App() {
         {/* Histórico de mensagens + cards injetados */}
         {todasMensagens.map(item => {
           // Card bonito injetado
-          if (item.ehCard && item.tipo === 'resumo_dia' && resumoDia) {
+          if (item.ehCard && item.tipo === 'resumo_dia' && (item.resumo || resumoDia)) {
             return (
               <div key={item.id} className="message fin">
                 <Avatar />
-                <CardResumoDia resumo={resumoDia} estabelecimento={estabelecimento} data={hoje} />
+                <CardResumoDia resumo={item.resumo || resumoDia} estabelecimento={estabelecimento} data={hoje} />
               </div>
             )
           }
