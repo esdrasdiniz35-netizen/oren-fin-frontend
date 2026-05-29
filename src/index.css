@@ -654,6 +654,14 @@ html, body {
     margin: 0 4px;
   }
 
+  .desktop-logo-slogan {
+    font-size: 18px;
+    font-weight: 300;
+    color: rgba(255,255,255,0.55);
+    letter-spacing: 0.5px;
+    font-style: italic;
+  }
+
   .desktop-logo-sub {
     font-size: 13px;
     color: var(--white-40);
@@ -699,10 +707,10 @@ html, body {
     align-items: center;
     gap: 10px;
     padding: 14px 16px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.07);
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.18);
     border-radius: 14px;
-    color: var(--white-60);
+    color: rgba(255,255,255,0.85);
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
@@ -713,10 +721,9 @@ html, body {
   }
 
   .desktop-nav-btn:hover {
-    background: rgba(59,130,246,0.12);
-    border-color: rgba(59,130,246,0.25);
+    background: rgba(59,130,246,0.25);
+    border-color: rgba(59,130,246,0.5);
     color: #fff;
-    transform: translateX(0) scale(1.02);
   }
 
   .desktop-nav-btn .nav-icon { font-size: 18px; }
