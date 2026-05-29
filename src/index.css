@@ -592,168 +592,153 @@ html, body {
   }
 }
 
+
 /* ============================================================
-   LAYOUT DESKTOP COMPLETO (>= 900px)
+   LAYOUT DESKTOP (>= 900px)
    ============================================================ */
+
 @media (min-width: 900px) {
   html, body {
-    background: linear-gradient(135deg, #050D1F 0%, #0A1628 50%, #050D1F 100%);
+    background: linear-gradient(135deg, #050D1F 0%, #0A1A35 40%, #0D2040 70%, #050D1F 100%);
     min-height: 100vh;
     overflow: hidden;
   }
 
+  /* Wrapper principal — ocupa tela toda */
   .desktop-wrapper {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 24px;
-    height: 100vh;
-    padding: 24px;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-
-  .app {
-    width: 420px;
-    min-width: 420px;
-    max-width: 420px;
-    height: calc(100vh - 48px);
-    margin: 0;
-    border-radius: 24px;
-    box-shadow: 0 0 80px rgba(59, 130, 246, 0.15), 0 0 40px rgba(0,0,0,0.6);
-    flex-shrink: 0;
-  }
-
-  /* Sidebar esquerda */
-  .sidebar {
-    display: flex;
     flex-direction: column;
-    gap: 16px;
-    width: 260px;
-    min-width: 260px;
+    align-items: center;
+    height: 100vh;
+    padding: 28px 24px 0;
+    position: relative;
+    overflow: hidden;
   }
 
-  .sidebar-logo {
+  /* Efeito de brilho no fundo */
+  .desktop-wrapper::before {
+    content: '';
+    position: fixed;
+    top: -200px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Logo centralizada no topo */
+  .desktop-logo {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 8px 0;
+    margin-bottom: 20px;
+    z-index: 1;
   }
 
-  .sidebar-logo-text {
-    font-size: 28px;
+  .desktop-logo-text {
+    font-size: 26px;
     font-weight: 800;
     letter-spacing: -0.5px;
   }
 
-  .sidebar-logo-oren { color: #fff; }
-  .sidebar-logo-ia { color: #3B82F6; }
+  .desktop-logo-oren { color: #fff; }
+  .desktop-logo-ia { color: #3B82F6; }
 
-  .sidebar-logo-tag {
-    font-size: 11px;
-    color: var(--white-40);
-    background: rgba(59, 130, 246, 0.1);
-    border: 1px solid rgba(59, 130, 246, 0.2);
-    padding: 3px 8px;
-    border-radius: 20px;
-    margin-left: 4px;
+  .desktop-logo-divider {
+    width: 1px;
+    height: 20px;
+    background: rgba(255,255,255,0.15);
+    margin: 0 4px;
   }
 
-  .sidebar-card {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 16px;
-    padding: 20px;
-  }
-
-  .sidebar-card-title {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--white-40);
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin-bottom: 16px;
-  }
-
-  .sidebar-metric {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-  }
-
-  .sidebar-metric:last-child { border-bottom: none; }
-
-  .sidebar-metric-label {
+  .desktop-logo-sub {
     font-size: 13px;
-    color: var(--white-60);
+    color: var(--white-40);
+    font-weight: 400;
   }
 
-  .sidebar-metric-value {
-    font-size: 14px;
-    font-weight: 700;
-    color: #fff;
+  /* Layout do meio — chat + botões laterais */
+  .desktop-main {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 20px;
+    width: 100%;
+    max-width: 900px;
+    flex: 1;
+    z-index: 1;
+    overflow: hidden;
   }
 
-  .sidebar-metric-value.green { color: #4ADE80; }
-  .sidebar-metric-value.red { color: #F87171; }
+  /* Chat centralizado */
+  .app {
+    width: 420px;
+    min-width: 420px;
+    max-width: 420px;
+    height: calc(100vh - 100px);
+    margin: 0;
+    border-radius: 24px;
+    box-shadow: 0 0 60px rgba(59,130,246,0.12), 0 20px 60px rgba(0,0,0,0.5);
+    flex-shrink: 0;
+  }
 
-  .sidebar-nav {
+  /* Botões laterais */
+  .desktop-nav {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
+    padding-top: 8px;
+    width: 160px;
   }
 
-  .sidebar-nav-btn {
+  .desktop-nav-btn {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
+    gap: 10px;
+    padding: 14px 16px;
     background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 12px;
-    color: var(--white-80);
-    font-size: 14px;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 14px;
+    color: var(--white-60);
+    font-size: 13px;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
     text-align: left;
     width: 100%;
+    backdrop-filter: blur(10px);
   }
 
-  .sidebar-nav-btn:hover {
-    background: rgba(59, 130, 246, 0.1);
-    border-color: rgba(59, 130, 246, 0.3);
+  .desktop-nav-btn:hover {
+    background: rgba(59,130,246,0.12);
+    border-color: rgba(59,130,246,0.25);
     color: #fff;
+    transform: translateX(0) scale(1.02);
   }
 
-  .sidebar-nav-icon { font-size: 18px; }
+  .desktop-nav-btn .nav-icon { font-size: 18px; }
+  .desktop-nav-btn .nav-label { font-size: 13px; font-weight: 500; }
+  .desktop-nav-btn .nav-sub { font-size: 10px; color: var(--white-30); display: block; margin-top: 1px; }
 
-  .sidebar-footer {
-    margin-top: auto;
-    padding: 16px;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 12px;
-    text-align: center;
+  .desktop-nav-left .desktop-nav-btn:hover {
+    transform: translateX(4px);
   }
 
-  .sidebar-footer-text {
-    font-size: 11px;
-    color: var(--white-30);
-    line-height: 1.6;
+  .desktop-nav-right .desktop-nav-btn:hover {
+    transform: translateX(-4px);
   }
 
-  .sidebar-footer-brand {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--white-40);
-    margin-top: 4px;
-  }
+  /* Esconde sidebar antiga */
+  .sidebar { display: none !important; }
 }
 
-/* Esconde sidebar no mobile */
-.sidebar { display: none; }
-.desktop-wrapper {
-  display: contents;
+/* Mobile — layout normal */
+@media (max-width: 899px) {
+  .desktop-wrapper { display: contents; }
+  .desktop-logo { display: none; }
+  .desktop-main { display: contents; }
+  .desktop-nav { display: none; }
 }
