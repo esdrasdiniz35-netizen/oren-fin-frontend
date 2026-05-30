@@ -77,6 +77,40 @@ export default function App() {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 900)
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
+  const appRef = useRef(null)
+
+  // ============================================================
+  // FIX TECLADO ANDROID — visualViewport
+  // ============================================================
+  useEffect(() => {
+    const isAndroid = /Android/i.test(navigator.userAgent)
+    if (!isAndroid) return
+
+    function handleViewportResize() {
+      if (!appRef.current) return
+      const viewport = window.visualViewport
+      if (!viewport) return
+
+      const height = viewport.height
+      const offsetTop = viewport.offsetTop
+
+      appRef.current.style.height = `${height}px`
+      appRef.current.style.transform = `translateY(${offsetTop}px)`
+
+      // Scroll para o fim das mensagens quando teclado abre
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+      }, 100)
+    }
+
+    window.visualViewport?.addEventListener('resize', handleViewportResize)
+    window.visualViewport?.addEventListener('scroll', handleViewportResize)
+
+    return () => {
+      window.visualViewport?.removeEventListener('resize', handleViewportResize)
+      window.visualViewport?.removeEventListener('scroll', handleViewportResize)
+    }
+  }, [])
 
   useEffect(() => {
     buscarContexto().then(ctx => {
@@ -179,8 +213,7 @@ export default function App() {
   }
 
   const chat = (
-    <div className="app">
-      {/* Header — sem reloginho */}
+    <div className="app" ref={appRef}>
       <header className="header">
         <div className="header-logo">
           <span className="header-oren">Oren</span>
@@ -206,8 +239,6 @@ export default function App() {
             </div>
           </div>
         )}
-
-
 
         {todasMensagens.map(item => {
           if (item.ehCard && item.tipo === 'resumo_dia' && (item.resumo || resumoDia)) {
@@ -278,7 +309,6 @@ export default function App() {
         <div ref={messagesEndRef} />
       </main>
 
-      {/* Atalhos — só no mobile */}
       {!isDesktop && (
         <div className="shortcuts">
           <button className="shortcut-btn" onClick={handleResumoDia}>
@@ -304,7 +334,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Input — sem ícone de anexo */}
       <div className="input-area">
         <input
           ref={inputRef}
@@ -332,13 +361,11 @@ export default function App() {
 
   return (
     <div className="desktop-wrapper">
-      {/* Slogan no topo — só desktop */}
       <div className="desktop-logo">
         <span className="desktop-logo-slogan">Gestão que entende você.</span>
       </div>
 
       <div className="desktop-main">
-        {/* Botões esquerda */}
         <nav className="desktop-nav desktop-nav-left">
           <button className="desktop-nav-btn" onClick={handleResumoDia}>
             <span className="nav-icon">📊</span>
@@ -358,7 +385,6 @@ export default function App() {
 
         {chat}
 
-        {/* Botões direita */}
         <nav className="desktop-nav desktop-nav-right">
           <button className="desktop-nav-btn" onClick={() => handleAtalho('Quero um relatório')}>
             <span className="nav-icon">📈</span>
