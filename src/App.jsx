@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useChat } from './hooks/useChat'
 import './index.css'
 
@@ -85,13 +85,26 @@ function LancamentosPanel({ lancamentos, data }) {
           <div className="agenda-empty">Nenhum lançamento hoje</div>
         ) : (
           lancamentos.map((l, i) => (
-            <div key={i} className={`lancamento-item ${l.tipo}`}>
-              <div className="lancamento-desc">{l.descricao}</div>
+            <div key={i} className={`lancamento-item ${l.tipo} ${l.status === 'inativo' ? 'inativo' : ''}`}>
+              <div className="lancamento-desc">
+                {l.status === 'inativo'
+                  ? <s style={{ color: '#94a3b8' }}>{l.descricao}</s>
+                  : l.descricao
+                }
+              </div>
               <div className="lancamento-right">
-                <span className="lancamento-valor" style={{ color: l.tipo === 'receita' ? '#22c55e' : '#ef4444' }}>
-                  {l.tipo === 'despesa' ? '-' : '+'}R$ {parseFloat(l.bruto || l.valor || 0).toFixed(2).replace('.', ',')}
+                <span
+                  className="lancamento-valor"
+                  style={{
+                    color: l.status === 'inativo' ? '#94a3b8' : l.tipo === 'receita' ? '#22c55e' : '#ef4444',
+                    textDecoration: l.status === 'inativo' ? 'line-through' : 'none'
+                  }}
+                >
+                  {l.tipo === 'despesa' ? '-' : '+'}R$ {parseFloat(l.bruto || 0).toFixed(2).replace('.', ',')}
                 </span>
-                <span className="lancamento-forma">{l.forma_pagamento || ''}</span>
+                <span className="lancamento-forma">
+                  {l.status === 'inativo' ? 'cancelado' : (l.forma_pagamento || '')}
+                </span>
               </div>
             </div>
           ))
@@ -101,8 +114,7 @@ function LancamentosPanel({ lancamentos, data }) {
   )
 }
 
-function ComparativoPanel({ dados }) {
-  const meses = dados.meses || []
+function ComparativoPanel({ meses }) {
   const categorias = [
     { key: 'banhos', label: 'Banhos', icon: '🛁', color: '#3b82f6' },
     { key: 'consultas', label: 'Consultas', icon: '🩺', color: '#8b5cf6' },
@@ -200,37 +212,41 @@ function parsearContexto(ctx) {
   if (!ctx) return {}
   const texto = ctx.contexto || ''
 
-  // Entradas, saídas, atendimentos do dia
+  // Stats do dia
   const entradas = texto.match(/Total entradas: R\$ ([\d.,]+)/)?.[1] || '0,00'
   const saidas = texto.match(/Total saídas: R\$ ([\d.,]+)/)?.[1] || '0,00'
   const saldo = texto.match(/Saldo do dia: R\$ ([\d.,]+)/)?.[1] || '0,00'
   const atendimentos = texto.match(/Atendimentos: (\d+)/)?.[1] || '0'
-  const saldoTotal = texto.match(/SALDO ATUAL: R\$ ([\d.,]+)/)?.[1] || '0,00'
-
-  // Data de hoje
   const dataHoje = texto.match(/DATA E HORA ATUAL: (\d{2}\/\d{2}\/\d{4})/)?.[1] || ''
 
-  // Lançamentos de hoje
-  const lancamentosHoje = []
-  const linhasLanc = texto.split('\n')
-  linhasLanc.forEach(linha => {
-    if (!linha.startsWith('- [ID:')) return
-    const match = linha.match(/\[ID:(\d+)\] (\d{2}\/\d{2}\/\d{4}) \| (receita|despesa) \| (.+?) \| R\$ ([\d.,]+) \| ([^\|]+)/)
-    if (match && match[2] === dataHoje) {
-      lancamentosHoje.push({
-        id: match[1],
-        data: match[2],
-        tipo: match[3],
-        descricao: match[4],
-        bruto: parseFloat(match[5].replace(',', '.')),
-        forma_pagamento: match[6]?.trim() || '',
-      })
-    }
-  })
+  // Lançamentos do dia — bloco especial com status
+  const lancamentosDia = []
+  const secaoDia = texto.match(/LANÇAMENTOS DO DIA \([^)]+\)[^\n]*\n([\s\S]*?)(?=\nÚLTIMOS|\nLANÇAMENTOS DO MÊS|\nCOMPARATIVO|$)/)
+  if (secaoDia) {
+    secaoDia[1].split('\n').forEach(linha => {
+      if (!linha.startsWith('- [ID:')) return
+      // Detecta status no final da linha
+      const inativo = linha.includes('[INATIVO]')
+      const pendente = linha.includes('[PENDENTE]')
+      const status = inativo ? 'inativo' : pendente ? 'pendente' : 'ativo'
+
+      const match = linha.match(/\[ID:(\d+)\] (receita|despesa) \| (.+?) \| R\$ ([\d.,]+) \| ([^\|]+)/)
+      if (match) {
+        lancamentosDia.push({
+          id: match[1],
+          tipo: match[2],
+          descricao: match[3],
+          bruto: parseFloat(match[4].replace(',', '.')),
+          forma_pagamento: match[5]?.replace('[INATIVO]', '').replace('[PENDENTE]', '').trim() || '',
+          status,
+        })
+      }
+    })
+  }
 
   // Agenda
   const agenda = []
-  const agendaMatch = texto.match(/AGENDA HOJE[^\n]*\n([\s\S]*?)(?=\n[A-Z]|$)/)
+  const agendaMatch = texto.match(/AGENDA HOJE[^\n]*\n([\s\S]*?)(?=\nAGENDA AMANHÃ|\nPACOTES|\nCLIENTES|$)/)
   if (agendaMatch) {
     agendaMatch[1].split('\n').forEach(linha => {
       const m = linha.match(/- (\d{2}:\d{2}) \| (.+)/)
@@ -238,54 +254,58 @@ function parsearContexto(ctx) {
     })
   }
 
-  // Clientes (tutores únicos por ID)
-  const clientesIds = new Set()
-  const clientesAnimais = []
-  const linhasClientes = texto.split('\n')
-  linhasClientes.forEach(linha => {
-    const m = linha.match(/\[ID:(\d+)\] (.+)/)
-    if (m && linha.includes('CLIENTES')) return
-    if (m && !linha.includes('LANÇAMENTOS') && !linha.includes('PACOTES') && !linha.includes('SESSÕES')) {
-      clientesIds.add(m[1])
-      clientesAnimais.push(linha)
-    }
-  })
-
-  // Contagem de tutores e pets da lista de clientes
+  // Clientes — conta tutores únicos por ID e total de pets
   let totalTutores = 0
   let totalPets = 0
-  const secaoClientes = texto.match(/CLIENTES CADASTRADOS[\s\S]*?(?=\n[A-Z]|$)/)
+  const secaoClientes = texto.match(/CLIENTES CADASTRADOS[\s\S]*?(?=\nFUNCIONÁRIOS|\nAGENDA|\n\n[A-Z]|$)/)
   if (secaoClientes) {
     const linhas = secaoClientes[0].split('\n').filter(l => l.startsWith('- [ID:'))
-    totalTutores = new Set(linhas.map(l => l.match(/\[ID:(\d+)\]/)?.[1])).size
+    const idsUnicos = new Set(linhas.map(l => l.match(/\[ID:(\d+)\]/)?.[1]).filter(Boolean))
+    totalTutores = idsUnicos.size
     totalPets = linhas.length
   }
 
-  // Liq bruto para stats
-  const entradasNum = parseFloat(entradas.replace(',', '.')) || 0
-  const saidasNum = parseFloat(saidas.replace(',', '.')) || 0
+  // Comparativo — lê do contexto real
+  const comparativoMeses = []
+  const nomesMeses = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+  const secaoComp = texto.match(/COMPARATIVO DE SERVIÇOS[\s\S]*?(?=\nPACOTES|\nÚLTIMOS|\n\n[A-Z]|$)/)
+  if (secaoComp) {
+    secaoComp[0].split('\n').forEach(linha => {
+      // Ex: - Março/2026: banhos=280 | consultas=4 | receita=R$ 18500.00
+      const m = linha.match(/- (.+?)\/(\d{4}).*?banhos=(\d+).*?consultas=(\d+)/)
+      if (m) {
+        const nomeMes = m[1].trim()
+        const isAtual = linha.includes('(atual)')
+        // Abrevia o nome do mês
+        const abrev = nomeMes.length > 4 ? nomeMes.slice(0, 3) : nomeMes
+        comparativoMeses.push({
+          nome: isAtual ? abrev + '*' : abrev,
+          banhos: parseInt(m[3]),
+          consultas: parseInt(m[4]),
+          isAtual,
+        })
+      }
+    })
+  }
 
-  // Comparativo — monta com dados do mês atual (simplificado)
-  const banhosMes = lancamentosHoje.filter(l =>
-    l.tipo === 'receita' && l.descricao.toLowerCase().includes('banho')
-  ).length
-  const consultasMes = lancamentosHoje.filter(l =>
-    l.tipo === 'receita' && l.descricao.toLowerCase().includes('consulta')
-  ).length
+  // Faturamento líquido — usa taxa_credito do contexto
+  const taxaCredito = parseFloat(ctx.taxa_credito || '2.02') / 100
+  const entradasNum = parseFloat(entradas.replace(',', '.')) || 0
+  const liquidoNum = entradasNum * (1 - taxaCredito)
 
   return {
     entradas,
     saidas,
     saldo,
-    saldoTotal,
     atendimentos,
     dataHoje,
-    lancamentosHoje,
+    lancamentosDia,
     agenda,
     totalTutores,
     totalPets,
     entradasNum,
-    saidasNum,
+    liquidoNum,
+    comparativoMeses,
   }
 }
 
@@ -326,15 +346,12 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    buscarContexto().then(ctx => {
-      if (ctx) setDashData(parsearContexto(ctx))
-    })
+    buscarContexto().then(ctx => { if (ctx) setDashData(parsearContexto(ctx)) })
     const handleResize = () => setIsDesktop(window.innerWidth >= 900)
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  // Atualiza dashboard quando contexto muda
   useEffect(() => {
     if (contexto) setDashData(parsearContexto(contexto))
   }, [contexto])
@@ -374,12 +391,13 @@ export default function App() {
     const ctx = await buscarContexto()
     if (ctx) setDashData(parsearContexto(ctx))
     setCarregandoResumo(false)
-    const resumo = dashData ? {
-      entradas: dashData.entradas,
-      saidas: dashData.saidas,
-      saldo: dashData.saldo,
-      atendimentos: dashData.atendimentos,
-    } : { entradas: '0,00', saidas: '0,00', saldo: '0,00', atendimentos: '0' }
+    const d = dashData || {}
+    const resumo = {
+      entradas: d.entradas || '0,00',
+      saidas: d.saidas || '0,00',
+      saldo: d.saldo || '0,00',
+      atendimentos: d.atendimentos || '0',
+    }
     const id = Date.now()
     setCardsInjetados(prev => [...prev, { id, tipo: 'resumo_dia', resumo, posicao: mensagens.length }])
   }
@@ -388,7 +406,7 @@ export default function App() {
   const hoje = new Date().toLocaleDateString('pt-BR')
   const d = dashData || {}
 
-  // Monta lista de mensagens com cards injetados
+  // Mensagens com cards
   const todasMensagens = []
   let cardIdx = 0
   mensagens.forEach((msg, i) => {
@@ -403,29 +421,8 @@ export default function App() {
     cardIdx++
   }
 
-  // Dados comparativos simulados (meses anteriores baseados em % do atual)
-  const mesAtual = new Date().getMonth()
-  const nomesMeses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
-  const comparativoMeses = [
-    {
-      nome: nomesMeses[(mesAtual - 2 + 12) % 12],
-      banhos: Math.floor((d.atendimentos || 0) * 3.2 + 12),
-      consultas: Math.floor((d.atendimentos || 0) * 0.4 + 3),
-    },
-    {
-      nome: nomesMeses[(mesAtual - 1 + 12) % 12],
-      banhos: Math.floor((d.atendimentos || 0) * 2.8 + 8),
-      consultas: Math.floor((d.atendimentos || 0) * 0.6 + 2),
-    },
-    {
-      nome: nomesMeses[mesAtual] + ' (atual)',
-      banhos: (d.lancamentosHoje || []).filter(l => l.tipo === 'receita' && l.descricao.toLowerCase().includes('banho')).length,
-      consultas: (d.lancamentosHoje || []).filter(l => l.tipo === 'receita' && l.descricao.toLowerCase().includes('consulta')).length,
-    },
-  ]
-
   // ============================================================
-  // CHAT (mobile e desktop)
+  // CHAT
   // ============================================================
   const chatEl = (
     <div className="app" ref={appRef}>
@@ -469,9 +466,7 @@ export default function App() {
             return (
               <div key={msg.id} className="message fin">
                 <Avatar />
-                <div className="bubble fin-bubble typing">
-                  <span /><span /><span />
-                </div>
+                <div className="bubble fin-bubble typing"><span /><span /><span /></div>
               </div>
             )
           }
@@ -521,8 +516,8 @@ export default function App() {
         <div className="shortcuts">
           <button className="shortcut-btn" onClick={handleResumoDia}>
             <span className="shortcut-icon">📊</span>
-            <span className="shortcut-label">Resumo do dia</span>
-            <span className="shortcut-sub">Ver indicadores</span>
+            <span className="shortcut-label">Resumo</span>
+            <span className="shortcut-sub">Do dia</span>
           </button>
           <button className="shortcut-btn" onClick={() => handleEnviarTexto('Mostrar todos os lançamentos de hoje')}>
             <span className="shortcut-icon">📋</span>
@@ -537,7 +532,7 @@ export default function App() {
           <button className="shortcut-btn" onClick={() => handleEnviarTexto('Ver agenda de hoje')}>
             <span className="shortcut-icon">📅</span>
             <span className="shortcut-label">Agenda</span>
-            <span className="shortcut-sub">Ver compromissos</span>
+            <span className="shortcut-sub">Compromissos</span>
           </button>
         </div>
       )}
@@ -567,17 +562,13 @@ export default function App() {
     </div>
   )
 
-  // ============================================================
-  // MOBILE
-  // ============================================================
   if (!isDesktop) return chatEl
 
   // ============================================================
-  // DESKTOP — Dashboard
+  // DESKTOP DASHBOARD
   // ============================================================
   return (
     <div className="dash-root">
-      {/* Header */}
       <header className="dash-header">
         <div className="dash-logo">
           <span className="dash-logo-oren">Oren</span>
@@ -591,9 +582,8 @@ export default function App() {
       </header>
 
       <div className="dash-body">
-        {/* Coluna Esquerda — Dashboard */}
+        {/* Coluna Esquerda */}
         <div className="dash-left">
-          {/* Stats Row */}
           <div className="dash-stats-row">
             <StatCard
               label="Atendimentos Hoje"
@@ -611,23 +601,20 @@ export default function App() {
             />
             <StatCard
               label="Faturamento Líquido"
-              value={`R$ ${(d.entradasNum - (d.entradasNum * 0.02)).toFixed(2).replace('.', ',') || '0,00'}`}
+              value={`R$ ${(d.liquidoNum || 0).toFixed(2).replace('.', ',')}`}
               color="#8b5cf6"
               icon="📈"
               sub="após taxas"
             />
           </div>
 
-          {/* Lançamentos */}
           <LancamentosPanel
-            lancamentos={d.lancamentosHoje || []}
+            lancamentos={d.lancamentosDia || []}
             data={hoje}
           />
 
-          {/* Comparativo */}
-          <ComparativoPanel dados={{ meses: comparativoMeses }} />
+          <ComparativoPanel meses={d.comparativoMeses || []} />
 
-          {/* Bottom Stats */}
           <div className="dash-stats-row">
             <StatCard
               label="Tutores Cadastrados"
@@ -653,12 +640,12 @@ export default function App() {
           </div>
         </div>
 
-        {/* Coluna Centro — Agenda */}
+        {/* Agenda */}
         <div className="dash-agenda">
           <AgendaPanel agenda={d.agenda || []} />
         </div>
 
-        {/* Coluna Direita — Chat */}
+        {/* Chat */}
         <div className="dash-chat-col">
           {chatEl}
         </div>
