@@ -93,15 +93,21 @@ function LancamentosPanel({ lancamentos, data }) {
                 }
               </div>
               <div className="lancamento-right">
-                <span
-                  className="lancamento-valor"
-                  style={{
-                    color: l.status === 'inativo' ? '#94a3b8' : l.tipo === 'receita' ? '#22c55e' : '#ef4444',
-                    textDecoration: l.status === 'inativo' ? 'line-through' : 'none'
-                  }}
-                >
-                  {l.tipo === 'despesa' ? '-' : '+'}R$ {parseFloat(l.bruto || 0).toFixed(2).replace('.', ',')}
-                </span>
+                {l.tipo === 'pacote' ? (
+                  <span className="lancamento-valor" style={{ color: '#94a3b8', fontSize: 12 }}>
+                    pacote
+                  </span>
+                ) : (
+                  <span
+                    className="lancamento-valor"
+                    style={{
+                      color: l.status === 'inativo' ? '#94a3b8' : l.tipo === 'receita' ? '#22c55e' : '#ef4444',
+                      textDecoration: l.status === 'inativo' ? 'line-through' : 'none'
+                    }}
+                  >
+                    {l.tipo === 'despesa' ? '-' : '+'}R$ {parseFloat(l.bruto || 0).toFixed(2).replace('.', ',')}
+                  </span>
+                )}
                 <span className="lancamento-forma">
                   {l.status === 'inativo' ? 'cancelado' : (l.forma_pagamento || '')}
                 </span>
@@ -225,11 +231,9 @@ function parsearContexto(ctx) {
   if (secaoDia) {
     secaoDia[1].split('\n').forEach(linha => {
       if (!linha.startsWith('- [ID:')) return
-      // Detecta status no final da linha
       const inativo = linha.includes('[INATIVO]')
       const pendente = linha.includes('[PENDENTE]')
       const status = inativo ? 'inativo' : pendente ? 'pendente' : 'ativo'
-
       const match = linha.match(/\[ID:(\d+)\] (receita|despesa) \| (.+?) \| R\$ ([\d.,]+) \| ([^\|]+)/)
       if (match) {
         lancamentosDia.push({
@@ -244,11 +248,32 @@ function parsearContexto(ctx) {
     })
   }
 
-  // Agenda
+  // Sessões de pacote realizadas hoje — adiciona na lista de lançamentos
+  const secaoSessoes = texto.match(/SESSÕES DE PACOTE REALIZADAS HOJE[^\n]*\n([\s\S]*?)(?=\nCLIENTES|\nESTOQUE|\nCONTAS|\nFUNCIONÁRIOS|\nAGENDA|$)/)
+  if (secaoSessoes) {
+    secaoSessoes[1].split('\n').forEach(linha => {
+      if (!linha.startsWith('- ')) return
+      const match = linha.match(/- (.+?) \(pacote\) \| (.+?) \| tutor: (.+?) \|/)
+      if (match) {
+        lancamentosDia.push({
+          id: 'pacote_' + Date.now() + '_' + Math.random(),
+          tipo: 'pacote',
+          descricao: `${match[1]} — ${match[2]}`,
+          bruto: 0,
+          forma_pagamento: 'pacote',
+          status: 'ativo',
+          cliente: match[3],
+          relacionado: match[2],
+        })
+      }
+    })
+  }
+
+  // Agenda — somente hoje
   const agenda = []
-  const agendaMatch = texto.match(/AGENDA HOJE[^\n]*\n([\s\S]*?)(?=\nAGENDA AMANHÃ|\nPACOTES|\nCLIENTES|$)/)
-  if (agendaMatch) {
-    agendaMatch[1].split('\n').forEach(linha => {
+  const agendaHoje = texto.match(/AGENDA HOJE[^\n]*\n([\s\S]*?)(?=\nAGENDA AMANHÃ|\nPACOTES|\nCLIENTES|\nESTOQUE|$)/)
+  if (agendaHoje) {
+    agendaHoje[1].split('\n').forEach(linha => {
       const m = linha.match(/- (\d{2}:\d{2}) \| (.+)/)
       if (m) agenda.push({ inicio: m[1], titulo: m[2] })
     })
@@ -257,7 +282,7 @@ function parsearContexto(ctx) {
   // Clientes — conta tutores únicos por ID e total de pets
   let totalTutores = 0
   let totalPets = 0
-  const secaoClientes = texto.match(/CLIENTES CADASTRADOS[\s\S]*?(?=\nFUNCIONÁRIOS|\nAGENDA|\n\n[A-Z]|$)/)
+  const secaoClientes = texto.match(/CLIENTES CADASTRADOS[\s\S]*?(?=\nESTOQUE|\nCONTAS|\nFUNCIONÁRIOS|\nAGENDA|\n\n[A-Z]|$)/)
   if (secaoClientes) {
     const linhas = secaoClientes[0].split('\n').filter(l => l.startsWith('- [ID:'))
     const idsUnicos = new Set(linhas.map(l => l.match(/\[ID:(\d+)\]/)?.[1]).filter(Boolean))
@@ -265,18 +290,15 @@ function parsearContexto(ctx) {
     totalPets = linhas.length
   }
 
-  // Comparativo — lê do contexto real
+  // Comparativo
   const comparativoMeses = []
-  const nomesMeses = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
-  const secaoComp = texto.match(/COMPARATIVO DE SERVIÇOS[\s\S]*?(?=\nPACOTES|\nÚLTIMOS|\n\n[A-Z]|$)/)
+  const secaoComp = texto.match(/COMPARATIVO DE SERVIÇOS[\s\S]*?(?=\nPACOTES|\nÚLTIMOS|\nCLIENTES|\n\n[A-Z]|$)/)
   if (secaoComp) {
     secaoComp[0].split('\n').forEach(linha => {
-      // Ex: - Março/2026: banhos=280 | consultas=4 | receita=R$ 18500.00
       const m = linha.match(/- (.+?)\/(\d{4}).*?banhos=(\d+).*?consultas=(\d+)/)
       if (m) {
         const nomeMes = m[1].trim()
         const isAtual = linha.includes('(atual)')
-        // Abrevia o nome do mês
         const abrev = nomeMes.length > 4 ? nomeMes.slice(0, 3) : nomeMes
         comparativoMeses.push({
           nome: isAtual ? abrev + '*' : abrev,
@@ -288,7 +310,7 @@ function parsearContexto(ctx) {
     })
   }
 
-  // Faturamento líquido — usa taxa_credito do contexto
+  // Faturamento líquido
   const taxaCredito = parseFloat(ctx.taxa_credito || '2.02') / 100
   const entradasNum = parseFloat(entradas.replace(',', '.')) || 0
   const liquidoNum = entradasNum * (1 - taxaCredito)
