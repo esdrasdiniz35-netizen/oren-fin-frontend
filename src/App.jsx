@@ -185,7 +185,7 @@ function CardResumoDia({ resumo, estabelecimento, data }) {
         <span className="bubble-time">{new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
       </div>
       <div className="bubble-content">
-        <p style={{ fontWeight: 600, marginBottom: 8 }}>📊 Resumo de hoje — {estabelecimento}</p>
+        <p style={{ fontWeight: 600, marginBottom: 8 }}>📊 Resumo de hoje</p>
         <p style={{ fontSize: 12, color: '#94a3b8', marginBottom: 10 }}>{data}</p>
         <div className="metric-cards">
           <div className="metric-card green">
