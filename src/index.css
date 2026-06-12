@@ -1,5 +1,6 @@
 /* ============================================================
    OREN IA — FIN | CSS COMPLETO COM DASHBOARD
+   Tema: WhatsApp Light + identidade Oren IA
    ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600&display=swap');
@@ -11,21 +12,42 @@
 }
 
 :root {
+  /* Paleta do chat (estilo WhatsApp light) */
+  --chat-bg: #ECE5DD;           /* fundo do feed de mensagens */
+  --chat-header: #0A1F44;       /* header navy da marca */
+  --chat-header-border: rgba(0,0,0,0.12);
+  --chat-input-area: #F0F0F0;   /* área do input */
+  --chat-input-bg: #FFFFFF;     /* campo de texto */
+  --chat-input-border: #D9D9D9;
+
+  /* Bolhas */
+  --bubble-fin: #FFFFFF;        /* bolha do Fin — branca */
+  --bubble-user: #D1E7FF;       /* bolha do usuário — azul claro marca */
+  --bubble-user-strong: #2563EB;
+  --bubble-shadow: 0 1px 2px rgba(0,0,0,0.13);
+
+  /* Texto do chat */
+  --text-primary: #1A1A1A;
+  --text-secondary: #667781;
+  --text-timestamp: #8696A0;
+  --text-bubble-name: #0A1F44;
+  --text-bubble-brand: #2563EB;
+
+  /* Shortcuts */
+  --shortcut-bg: #F7F7F7;
+  --shortcut-border: #E8E8E8;
+  --shortcut-text: #1A1A1A;
+  --shortcut-sub: #667781;
+
+  /* Azuis da marca */
   --navy: #0A1F44;
   --navy-light: #0D2655;
-  --navy-lighter: #112D6A;
   --blue: #2563EB;
   --blue-light: #3B82F6;
   --green: #16A34A;
   --red: #DC2626;
-  --white: #FFFFFF;
-  --white-80: rgba(255,255,255,0.8);
-  --white-60: rgba(255,255,255,0.6);
-  --white-20: rgba(255,255,255,0.2);
-  --white-10: rgba(255,255,255,0.1);
-  --white-05: rgba(255,255,255,0.05);
 
-  /* Dashboard */
+  /* Dashboard (mantido igual) */
   --dash-bg: #f0f4f8;
   --dash-card: #ffffff;
   --dash-border: #e2e8f0;
@@ -35,7 +57,7 @@
 
   --font: 'DM Sans', -apple-system, sans-serif;
   --font-display: 'Plus Jakarta Sans', -apple-system, sans-serif;
-  --radius: 16px;
+  --radius: 12px;
   --radius-sm: 10px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -43,7 +65,7 @@
 html, body {
   height: 100%;
   overflow: hidden;
-  background: var(--navy);
+  background: var(--chat-bg);
   font-family: var(--font);
 }
 
@@ -62,7 +84,7 @@ html, body {
   overflow: hidden;
 }
 
-/* Header */
+/* Header desktop */
 .dash-header {
   display: flex;
   align-items: center;
@@ -81,6 +103,27 @@ html, body {
   gap: 8px;
 }
 
+/* Logo como imagem no dashboard */
+.dash-logo-img {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
+}
+
+.dash-logo-sep {
+  width: 1px;
+  height: 18px;
+  background: #e2e8f0;
+  margin: 0 4px;
+}
+
+.dash-logo-sub {
+  font-size: 13px;
+  color: var(--dash-muted);
+  font-weight: 500;
+}
+
+/* Manter retrocompatibilidade texto caso imagem falhe */
 .dash-logo-oren {
   font-family: var(--font-display);
   font-size: 20px;
@@ -95,19 +138,6 @@ html, body {
   font-weight: 800;
   color: #3b82f6;
   letter-spacing: -0.5px;
-}
-
-.dash-logo-sep {
-  width: 1px;
-  height: 18px;
-  background: #e2e8f0;
-  margin: 0 4px;
-}
-
-.dash-logo-sub {
-  font-size: 13px;
-  color: var(--dash-muted);
-  font-weight: 500;
 }
 
 .dash-date {
@@ -166,10 +196,7 @@ html, body {
   box-shadow: 0 4px 16px rgba(0,0,0,0.08);
 }
 
-.stat-card-icon {
-  font-size: 24px;
-  flex-shrink: 0;
-}
+.stat-card-icon { font-size: 24px; flex-shrink: 0; }
 
 .stat-card-content {
   display: flex;
@@ -194,10 +221,7 @@ html, body {
   line-height: 1.1;
 }
 
-.stat-card-sub {
-  font-size: 11px;
-  color: #94a3b8;
-}
+.stat-card-sub { font-size: 11px; color: #94a3b8; }
 
 /* Panel shared */
 .panel-header {
@@ -308,17 +332,9 @@ html, body {
   box-shadow: var(--dash-shadow);
 }
 
-.comparativo-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
+.comparativo-grid { display: flex; flex-direction: column; gap: 16px; }
 
-.comparativo-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
+.comparativo-row { display: flex; align-items: center; gap: 14px; }
 
 .comparativo-label {
   display: flex;
@@ -331,18 +347,9 @@ html, body {
   flex-shrink: 0;
 }
 
-.comparativo-bars {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex: 1;
-}
+.comparativo-bars { display: flex; flex-direction: column; gap: 6px; flex: 1; }
 
-.comparativo-bar-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+.comparativo-bar-wrap { display: flex; align-items: center; gap: 8px; }
 
 .comparativo-bar-label {
   font-size: 11px;
@@ -378,9 +385,7 @@ html, body {
    COLUNA AGENDA
    ============================================================ */
 
-.dash-agenda {
-  overflow: hidden;
-}
+.dash-agenda { overflow: hidden; }
 
 .agenda-panel {
   background: var(--dash-card);
@@ -433,7 +438,7 @@ html, body {
 }
 
 /* ============================================================
-   COLUNA CHAT
+   COLUNA CHAT (embedded no dashboard)
    ============================================================ */
 
 .dash-chat-col {
@@ -443,16 +448,16 @@ html, body {
 }
 
 /* ============================================================
-   CHAT — APP MOBILE/EMBEDDED
+   CHAT — APP MOBILE/EMBEDDED (TEMA WHATSAPP LIGHT)
    ============================================================ */
 
 .app {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: var(--navy);
+  background: var(--chat-bg);
   font-family: var(--font);
-  color: var(--white);
+  color: var(--text-primary);
   position: relative;
   overflow: hidden;
   will-change: transform, height;
@@ -467,90 +472,178 @@ html, body {
     transform-origin: top left;
   }
 
-  html, body { background: var(--navy); overflow: hidden; }
+  html, body { background: var(--chat-bg); overflow: hidden; }
   #root { height: 100%; }
 }
+
+/* ============================================================
+   HEADER DO CHAT — navy com logo
+   ============================================================ */
 
 .header {
   display: flex;
   align-items: center;
-  padding: 14px 20px 10px;
-  background: var(--navy);
-  border-bottom: 1px solid var(--white-10);
+  padding: 10px 16px 10px;
+  padding-top: max(10px, env(safe-area-inset-top, 10px));
+  background: var(--chat-header);
+  border-bottom: 1px solid var(--chat-header-border);
   flex-shrink: 0;
-  padding-top: max(14px, env(safe-area-inset-top, 14px));
+  gap: 12px;
 }
 
-.header-logo { font-size: 20px; font-weight: 700; }
-.header-oren { color: var(--white); }
+/* Logo no header do chat */
+.header-logo-img {
+  height: 28px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* Fallback texto caso imagem não carregue */
+.header-logo-text { font-size: 20px; font-weight: 700; }
+.header-oren { color: #FFFFFF; }
 .header-ia { color: var(--blue-light); }
+
+/* Info do contato (estilo WhatsApp) */
+.header-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+}
+
+.header-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #FFFFFF;
+  line-height: 1.2;
+}
+
+.header-status {
+  font-size: 12px;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.2;
+}
+
+/* ============================================================
+   ÁREA DE MENSAGENS
+   ============================================================ */
 
 .messages {
   flex: 1;
   overflow-y: auto;
-  padding: 14px 14px 8px;
+  padding: 12px 12px 8px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 4px;
   scroll-behavior: smooth;
   overscroll-behavior: contain;
+  /* Padrão de fundo estilo WhatsApp sutil */
+  background: var(--chat-bg);
 }
 .messages::-webkit-scrollbar { width: 0; }
 
-.message { display: flex; gap: 8px; align-items: flex-end; }
+/* ============================================================
+   MENSAGENS E BOLHAS
+   ============================================================ */
+
+.message { display: flex; gap: 6px; align-items: flex-end; margin-bottom: 2px; }
 .message.user { flex-direction: row-reverse; }
 
+/* Avatar */
 .avatar {
-  width: 32px; height: 32px;
+  width: 30px; height: 30px;
   border-radius: 50%;
-  background: var(--blue);
+  background: var(--navy);
   flex-shrink: 0;
   overflow: hidden;
   display: flex; align-items: center; justify-content: center;
-  border: 2px solid var(--blue-light);
+  border: 1.5px solid rgba(37,99,235,0.4);
 }
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
-.avatar-fallback { font-size: 13px; font-weight: 700; color: white; }
+.avatar-fallback { font-size: 12px; font-weight: 700; color: white; }
 
+/* Bolha base */
 .bubble {
-  max-width: calc(100% - 46px);
-  border-radius: var(--radius);
-  padding: 10px 13px;
+  max-width: calc(100% - 42px);
+  border-radius: 8px;
+  padding: 7px 12px 6px;
   position: relative;
+  box-shadow: var(--bubble-shadow);
 }
 
+/* Bolha do Fin — branca, bico esquerdo */
 .fin-bubble {
-  background: var(--navy-light);
-  border: 1px solid var(--white-10);
-  border-bottom-left-radius: 4px;
+  background: var(--bubble-fin);
+  border-bottom-left-radius: 2px;
 }
 
+/* Bolha do usuário — azul claro, bico direito */
 .user-bubble {
-  background: var(--blue);
-  border-bottom-right-radius: 4px;
-  padding: 9px 13px;
+  background: var(--bubble-user);
+  border-bottom-right-radius: 2px;
+  padding: 7px 12px 6px;
 }
 
+/* Header da bolha (nome + marca + hora) */
 .bubble-header {
-  display: flex; align-items: center; gap: 5px;
-  margin-bottom: 6px;
+  display: flex; align-items: center; gap: 4px;
+  margin-bottom: 3px;
 }
 
-.bubble-name { font-size: 11px; font-weight: 700; color: var(--white); }
-.bubble-dot { color: rgba(255,255,255,0.4); font-size: 9px; }
-.bubble-brand { font-size: 10px; color: var(--blue-light); font-weight: 500; }
-.bubble-time { font-size: 10px; color: var(--white-60); margin-left: auto; }
+.bubble-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-bubble-name);
+}
 
-.bubble-content { font-size: 13px; line-height: 1.6; color: var(--white-80); }
-.bubble-content p { margin-bottom: 3px; }
+.bubble-dot { color: #C4C4C4; font-size: 8px; }
+
+.bubble-brand {
+  font-size: 11px;
+  color: var(--text-bubble-brand);
+  font-weight: 500;
+}
+
+.bubble-time {
+  font-size: 10px;
+  color: var(--text-timestamp);
+  margin-left: auto;
+}
+
+/* Conteúdo da bolha */
+.bubble-content {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.bubble-content p { margin-bottom: 2px; }
 .bubble-content p:last-child { margin-bottom: 0; }
-.bubble-content strong { color: var(--white); font-weight: 600; }
-.user-bubble .bubble-content { color: var(--white); font-size: 13px; }
+.bubble-content strong { color: var(--text-primary); font-weight: 600; }
 
-.check-marks { display: block; text-align: right; font-size: 10px; color: rgba(255,255,255,0.6); margin-top: 3px; }
+/* Bolha do usuário — texto um pouco mais escuro */
+.user-bubble .bubble-content {
+  color: #0D1B2A;
+  font-size: 13.5px;
+}
 
-.bubble.typing { padding: 12px 16px; display: flex; gap: 5px; align-items: center; }
-.typing span { width: 6px; height: 6px; background: var(--white-60); border-radius: 50%; animation: typing 1.2s infinite; }
+/* Ticks de confirmação */
+.check-marks {
+  display: block;
+  text-align: right;
+  font-size: 11px;
+  color: var(--blue);
+  margin-top: 2px;
+}
+
+/* Animação de digitando */
+.bubble.typing { padding: 10px 14px; display: flex; gap: 5px; align-items: center; }
+.typing span {
+  width: 7px; height: 7px;
+  background: #B0B0B0;
+  border-radius: 50%;
+  animation: typing 1.2s infinite;
+}
 .bubble.typing span:nth-child(2) { animation-delay: 0.2s; }
 .bubble.typing span:nth-child(3) { animation-delay: 0.4s; }
 @keyframes typing {
@@ -558,86 +651,102 @@ html, body {
   30% { transform: translateY(-5px); opacity: 1; }
 }
 
-/* Metric cards (resumo do dia no chat) */
-.metric-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 8px; }
-.metric-card { border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; }
-.metric-card.green { background: rgba(22,163,74,0.2); border: 1px solid rgba(22,163,74,0.3); }
-.metric-card.red   { background: rgba(220,38,38,0.2); border: 1px solid rgba(220,38,38,0.3); }
-.metric-card.blue  { background: rgba(37,99,235,0.2); border: 1px solid rgba(37,99,235,0.3); }
-.metric-card.gray  { background: var(--white-05); border: 1px solid var(--white-10); }
-.metric-label { font-size: 9px; font-weight: 600; color: var(--white-60); text-transform: uppercase; letter-spacing: 0.5px; }
-.metric-value { font-size: 13px; font-weight: 700; color: var(--white); }
-.metric-card.green .metric-value { color: #4ADE80; }
-.metric-card.red .metric-value   { color: #F87171; }
+/* ============================================================
+   METRIC CARDS (resumo do dia no chat)
+   ============================================================ */
 
+.metric-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 6px; }
+.metric-card { border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; }
+.metric-card.green { background: rgba(22,163,74,0.12); border: 1px solid rgba(22,163,74,0.25); }
+.metric-card.red   { background: rgba(220,38,38,0.1); border: 1px solid rgba(220,38,38,0.2); }
+.metric-card.blue  { background: rgba(37,99,235,0.1); border: 1px solid rgba(37,99,235,0.2); }
+.metric-card.gray  { background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.08); }
+
+.metric-label { font-size: 9px; font-weight: 600; color: #667781; text-transform: uppercase; letter-spacing: 0.5px; }
+.metric-value { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+.metric-card.green .metric-value { color: #15803D; }
+.metric-card.red .metric-value   { color: #DC2626; }
+.metric-card.blue .metric-value  { color: #2563EB; }
+
+/* Link PDF */
 .pdf-link {
   display: inline-flex; align-items: center; gap: 6px;
-  color: var(--blue-light); text-decoration: none;
+  color: var(--blue); text-decoration: none;
   font-size: 13px; font-weight: 500;
   padding: 7px 10px;
-  background: var(--white-05); border: 1px solid var(--white-10);
+  background: rgba(37,99,235,0.08); border: 1px solid rgba(37,99,235,0.2);
   border-radius: 8px;
 }
 
-/* Shortcuts mobile */
+/* ============================================================
+   SHORTCUTS MOBILE
+   ============================================================ */
+
 .shortcuts {
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px;
   padding: 7px 10px;
-  background: var(--navy-light);
-  border-top: 1px solid var(--white-10);
+  background: var(--shortcut-bg);
+  border-top: 1px solid var(--shortcut-border);
   flex-shrink: 0;
 }
 
 .shortcut-btn {
-  background: var(--white-05); border: 1px solid var(--white-10);
-  border-radius: 8px; color: var(--white);
+  background: #FFFFFF;
+  border: 1px solid var(--shortcut-border);
+  border-radius: 8px;
+  color: var(--shortcut-text);
   padding: 7px 3px; cursor: pointer;
   display: flex; flex-direction: column; align-items: center; gap: 2px;
   font-family: var(--font); transition: background 0.2s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
 }
-.shortcut-btn:hover { background: var(--white-10); }
-.shortcut-btn:active { background: var(--blue); }
+.shortcut-btn:hover { background: #F0F0F0; }
+.shortcut-btn:active { background: #E8F0FE; border-color: var(--blue); }
 .shortcut-icon { font-size: 14px; }
-.shortcut-label { font-size: 9px; font-weight: 600; color: var(--white); }
-.shortcut-sub { font-size: 8px; color: var(--white-60); }
+.shortcut-label { font-size: 9px; font-weight: 600; color: var(--shortcut-text); }
+.shortcut-sub { font-size: 8px; color: var(--shortcut-sub); }
 
-/* Input */
+/* ============================================================
+   ÁREA DO INPUT
+   ============================================================ */
+
 .input-area {
   display: flex; align-items: center; gap: 8px;
-  padding: 9px 14px;
-  padding-bottom: max(9px, calc(9px + var(--safe-bottom)));
-  background: var(--navy);
-  border-top: 1px solid var(--white-10);
+  padding: 8px 12px;
+  padding-bottom: max(8px, calc(8px + var(--safe-bottom)));
+  background: var(--chat-input-area);
+  border-top: 1px solid #D9D9D9;
   flex-shrink: 0;
 }
 
 .input {
   flex: 1;
-  background: var(--navy-light);
-  border: 1px solid var(--white-20);
-  border-radius: 20px;
-  color: var(--white);
+  background: var(--chat-input-bg);
+  border: 1px solid var(--chat-input-border);
+  border-radius: 22px;
+  color: var(--text-primary);
   font-family: var(--font);
-  font-size: max(16px, 13px);
-  padding: 9px 14px;
+  font-size: max(16px, 14px);
+  padding: 9px 16px;
   outline: none;
   transition: border-color 0.2s;
   min-height: 38px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
 }
-.input::placeholder { color: var(--white-60); }
-.input:focus { border-color: var(--blue); }
-.input:disabled { opacity: 0.6; }
+.input::placeholder { color: #A0A0A0; }
+.input:focus { border-color: var(--blue-light); }
+.input:disabled { opacity: 0.5; }
 
 .send-btn {
-  width: 38px; height: 38px;
+  width: 40px; height: 40px;
   border-radius: 50%; border: none;
-  background: var(--white-20); color: var(--white-60);
+  background: #D0D0D0; color: #888;
   cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
   transition: background 0.2s, color 0.2s, transform 0.1s;
 }
-.send-btn.active { background: var(--blue); color: var(--white); }
+.send-btn.active { background: var(--blue); color: #FFFFFF; }
 .send-btn.active:hover { background: var(--blue-light); }
 .send-btn:active { transform: scale(0.92); }
 .send-btn:disabled { cursor: not-allowed; }
@@ -648,7 +757,7 @@ html, body {
 @media (max-width: 899px) {
   .dash-root { display: none; }
 
-  html, body { background: var(--navy); }
+  html, body { background: var(--chat-bg); }
 
   .app {
     max-width: 480px;
@@ -659,10 +768,10 @@ html, body {
 
 @media (min-width: 481px) and (max-width: 899px) {
   .app {
-    box-shadow: 0 0 40px rgba(0,0,0,0.4);
+    box-shadow: 0 0 40px rgba(0,0,0,0.2);
     border-radius: 20px;
     margin: 16px auto;
     height: calc(100dvh - 32px);
   }
-  html, body { background: #050D1F; overflow: auto; }
+  html, body { background: #D4C9BE; overflow: auto; }
 }
