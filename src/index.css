@@ -105,7 +105,7 @@ html, body {
 
 /* Logo como imagem no dashboard */
 .dash-logo-img {
-  height: 42px;
+  height: 48px;
   width: auto;
   object-fit: contain;
 }
@@ -493,7 +493,7 @@ html, body {
 
 /* Logo no header do chat */
 .header-logo-img {
-  height: 36px;
+  height: 44px;
   width: auto;
   object-fit: contain;
 }
